@@ -9,6 +9,13 @@ Rails.application.routes.draw do
       get :csv_param
     end
   end
+  resources :kares do
+    collection do
+      get :import
+      get :csv_param
+    end
+  end
+
   root to: 'visitors#index'
   devise_for :users
   resources :users

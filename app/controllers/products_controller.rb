@@ -138,11 +138,7 @@ class ProductsController < ApplicationController
   end
 
   def import
-    if Rails.env.development?
-      Product.import
-    else
-      Product.delay.import
-    end
+    Product.delay.import
     flash[:notice] = 'Задача обновления каталога запущена'
     redirect_to products_path
   end
