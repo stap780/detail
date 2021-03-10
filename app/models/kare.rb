@@ -80,7 +80,8 @@ class Kare < ApplicationRecord
         quantity_euro: doc_product.at("param[name='Количество для заказа']").text.to_i,
         quantity: doc_product.at("param[name='Количество в наличии в России']").text.to_i,
         image: doc_product.xpath("picture").map(&:text).join(' '),
-        url: doc_product.xpath("url").text
+        url: doc_product.xpath("url").text,
+        brand: doc_product.xpath("vendor").text
       }
 
       product = Kare.find_by_sku(data[:sku])
@@ -130,13 +131,7 @@ class Kare < ApplicationRecord
     CSV.open(file, 'w') do |writer|
       headers = ['fid','Артикул', 'Название товара', 'Дополнительное поле: Полное название товара', 'Дополнительное поле: Особенность',
                  'Полное описание', 'Цена продажи', 'Остаток', 'Остаток в Европе', 'Изображения',
-                 'Подкатегория 1', 'Подкатегория 2', 'Подкатегория 3', 'Подкатегория 4' ]
-
-      # headers = ['fid','Артикул', 'Название товара', 'Полное название товара', 'Полное описание',
-      #            'Цена продажи', 'Старая цена' , 'Остаток', 'Остаток в Европе', 'Изображения',
-      #            'Подкатегория 1', 'Подкатегория 2', 'Подкатегория 3', 'Подкатегория 4',
-      #            'Параметр: Ширина', 'Параметр: Глубина', 'Параметр: Высота',
-      #            'Параметр: Объем', 'Параметр: Оригинальные цвета', 'Параметр: Оригинальные материалы', 'Параметр: Особенность' ]
+                 'Подкатегория 1', 'Подкатегория 2', 'Подкатегория 3', 'Подкатегория 4', 'Параметр: Бренд' ]
 
       writer << headers
       @tovs.each do |pr|
@@ -157,7 +152,7 @@ class Kare < ApplicationRecord
           cat2 = pr.cat.split('/')[2] || '' if pr.cat != nil
           cat3 = pr.cat.split('/')[3] || '' if pr.cat != nil
 
-          writer << [fid, sku, title, full_title, specialty, desc, price, quantity, quantity_euro, image, cat, cat1, cat2, cat3 ]
+          writer << [fid, sku, title, full_title, specialty, desc, price, quantity, quantity_euro, image, cat, cat1, cat2, cat3, 'KARE' ]
         end
       end
     end #CSV.open

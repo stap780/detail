@@ -43,6 +43,7 @@ ActiveRecord::Schema.define(version: 20210309132849) do
     t.string   "specialty"
     t.string   "image"
     t.string   "url"
+    t.string   "brand"
     t.datetime "created_at",    null: false
     t.datetime "updated_at",    null: false
   end

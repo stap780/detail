@@ -13,6 +13,7 @@ class CreateKares < ActiveRecord::Migration[5.0]
       t.string :specialty
       t.string :image
       t.string :url
+      t.string :brand
 
       t.timestamps
     end
