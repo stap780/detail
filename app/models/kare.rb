@@ -35,6 +35,14 @@ class Kare < ApplicationRecord
 
     doc = Nokogiri::XML(file)
 
+    doc_products = doc.xpath("//offer")
+
+    return if doc_products.count == 0
+
+    Kare.find_each(batch_size: 1000) do |kare|
+      kare.update(quantity: 0)
+    end
+
     categories = {}
     doc_categories = doc.xpath("//category")
     parent_category = ''
@@ -47,10 +55,6 @@ class Kare < ApplicationRecord
       end
       categories[c["id"]] = "Kare/#{parent_category}/#{c.text}"
     end
-
-    doc_products = doc.xpath("//offer")
-
-    return if doc_products.count == 0
 
     doc_products.each do |doc_product|
 
