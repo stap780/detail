@@ -12,6 +12,11 @@
 
 _work
 
+/public/ins_kare.csv
+/public/kare.csv
+/public/partners.xml
+
+
 # bundler state
 /.bundle
 /vendor/bundle/

@@ -45,7 +45,7 @@ class Kare < ApplicationRecord
         parent_category = c.text
         next
       end
-      categories[c["id"]] = "Каталог/#{parent_category}/#{c.text}"
+      categories[c["id"]] = "Kare/#{parent_category}/#{c.text}"
     end
 
     doc_products = doc.xpath("//offer")
@@ -59,7 +59,6 @@ class Kare < ApplicationRecord
         "#{name}: #{values_param}"
       end.reject(&:nil?).join(' --- ')
 
-      # charact_gab = "#{doc_product.css("param[name='Ширина, см']").text}x#{doc_product.css("param[name='Глубина, см']").text}x#{doc_product.css("param[name='Высота, см']").text}"
       if doc_product.xpath("oldprice").present?
         number = doc_product.xpath("oldprice").text.to_f
         price = number - number/100
@@ -136,7 +135,6 @@ class Kare < ApplicationRecord
       writer << headers
       @tovs.each do |pr|
         if pr.title != nil
-          puts "pr.id - "+pr.id.to_s
           fid = pr.id
           sku = pr.sku
           title = pr.title
@@ -144,7 +142,7 @@ class Kare < ApplicationRecord
           specialty = pr.specialty
           desc = pr.desc
           price = pr.price
-          quantity = pr.quantity
+          quantity = pr.quantity > 0 ? '' : 0
           quantity_euro = pr.quantity_euro
           image = pr.image
           cat = pr.cat.split('/')[0] || '' if pr.cat != nil
