@@ -29,7 +29,7 @@ class Kare < ApplicationRecord
       ftp.getbinaryfile("partners.xml", "public/partners.xml")
       ftp.close
     rescue
-      puts 'Not file'
+      return
     end
     file = File.open(file_path)
 
@@ -49,6 +49,8 @@ class Kare < ApplicationRecord
     end
 
     doc_products = doc.xpath("//offer")
+
+    return if doc_products.count == 0
 
     doc_products.each do |doc_product|
 
