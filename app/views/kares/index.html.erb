@@ -61,7 +61,7 @@
         <td><%= link_to product.title, edit_kare_path(product) %></td>
         <td><%= product.desc.truncate(25) if product.desc != nil%></td>
         <td><%= product.cat %></td>
-        <td><%= product.charact.truncate(25) if product.charact != nil %></td>
+        <td><%= product.charact %></td>
         <td><%= product.price %></td>
         <td><%= product.quantity %></td>
         <td class="row ml-0 mr-0"><% product.image.split(' ').each do |pict| %><div class="w-25"><img class="img-thumbnail" src="<%= pict %>"></div><% end %></td>

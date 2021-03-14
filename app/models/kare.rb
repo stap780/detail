@@ -53,15 +53,17 @@ class Kare < ApplicationRecord
         parent_category = c.text
         next
       end
-      categories[c["id"]] = "Kare/#{parent_category}/#{c.text}"
+      categories[c["id"]] = "Бренды/KARE/#{parent_category}/#{c.text}"
     end
 
     doc_products.each do |doc_product|
 
       charact = doc_product.xpath("param").map do |doc_param|
-        name = doc_param['name']
+        name = doc_param['name'].gsub(/, куб.м|, см/, '')
         next if ['Количество для заказа', 'Количество в наличии в России', 'Артикул', 'Цвета', 'Материалы', 'Описание', 'Особенность'].include? name
         values_param = doc_param.text.gsub(', ', ',').split(',').join('##')
+        name = 'Материал' if name == 'Оригинальные материалы'
+        name = 'Цвет' if name == 'Оригинальные цвета'
         "#{name}: #{values_param}"
       end.reject(&:nil?).join(' --- ')
 
@@ -74,9 +76,9 @@ class Kare < ApplicationRecord
       end
 
       data = {
-        sku: doc_product.at("param[name='Артикул']").text,
-        title: doc_product.xpath("name").text.split(/\s\d+\*{1}\d+\*{1}\d+/).first,
-        full_title: doc_product.xpath("name").text,
+        sku: "KARE__#{doc_product.at("param[name='Артикул']").text}",
+        title: doc_product.xpath("name").text.split(/\s[0-9]+,?[0-9]?\*{1}[0-9]+,?[0-9]?\*{1}[0-9]+,?[0-9]?/).first.gsub(/&quot;/, '"'),
+        full_title: doc_product.xpath("name").text.gsub(/&quot;/, '"'),
         desc: doc_product.at("param[name='Описание']")&.text,
         cat: categories[doc_product.xpath("categoryId").text.to_s],
         specialty: doc_product.at("param[name='Особенность']")&.text,
@@ -135,7 +137,7 @@ class Kare < ApplicationRecord
     end
     CSV.open(file, 'w') do |writer|
       headers = ['fid','Артикул', 'Название товара', 'Дополнительное поле: Полное название товара', 'Дополнительное поле: Особенность',
-                 'Полное описание', 'Цена продажи', 'Остаток', 'Остаток в Европе', 'Изображения',
+                 'Полное описание', 'Цена продажи', 'Остаток', 'Изображения',
                  'Подкатегория 1', 'Подкатегория 2', 'Подкатегория 3', 'Подкатегория 4', 'Параметр: Бренд' ]
 
       writer << headers
@@ -156,7 +158,7 @@ class Kare < ApplicationRecord
           cat2 = pr.cat.split('/')[2] || '' if pr.cat != nil
           cat3 = pr.cat.split('/')[3] || '' if pr.cat != nil
 
-          writer << [fid, sku, title, full_title, specialty, desc, price, quantity, quantity_euro, image, cat, cat1, cat2, cat3, 'KARE' ]
+          writer << [fid, sku, title, full_title, specialty, desc, price, quantity, image, cat, cat1, cat2, cat3, 'KARE' ]
         end
       end
     end #CSV.open

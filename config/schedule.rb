@@ -38,3 +38,11 @@ end
 every 1.day, :at => '16:00' do
   runner "Product.import"
 end
+
+every 1.day, :at => '23:00' do
+  runner "Kare.import"
+end
+every 1.day, :at => '23:10' do
+  runner "Kare.csv_param"
+end
+
