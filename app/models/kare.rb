@@ -83,7 +83,7 @@ class Kare < ApplicationRecord
         cat: categories[doc_product.xpath("categoryId").text.to_s],
         specialty: doc_product.at("param[name='Особенность']")&.text,
         charact: charact,
-        price: price,
+        price: price.floor,
         quantity_euro: doc_product.at("param[name='Количество для заказа']").text.to_i,
         quantity: doc_product.at("param[name='Количество в наличии в России']").text.to_i,
         image: doc_product.xpath("picture").map(&:text).join(' '),

@@ -51,7 +51,7 @@ class KaresController < ApplicationController
   # POST /products
   # POST /products.json
   def create
-    @kare = Kare.new(product_params)
+    @kare = Kare.new(kare_params)
 
     respond_to do |format|
       if @kare.save
@@ -68,7 +68,7 @@ class KaresController < ApplicationController
   # PATCH/PUT /products/1.json
   def update
     respond_to do |format|
-      if @kare.update(product_params)
+      if @kare.update(kare_params)
         format.html { redirect_to @kare, notice: 'Kare was successfully updated.' }
         format.json { render :show, status: :ok, location: @kare }
       else
