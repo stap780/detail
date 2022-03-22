@@ -60,36 +60,41 @@ class Product < ApplicationRecord
           charact = characts_array.join('---')
           sku = sku_array.join()
           charact_gab = charact_gab_array.join().gsub('cm', '').gsub('см', '')
-          if pr_doc.css('.element-sale').present?
-            oldprice = pr_doc.css('.element-sale').text.strip.gsub(' ','').gsub('руб.','').gsub('.0','')
-          else
-            oldprice = 0
-          end
-          if pr_doc.css('.element-price').present?
-            price = pr_doc.css('.element-price').text.strip.gsub(' ','').gsub('руб.','').gsub('.0','')
-          else
-            price = 0
-          end
 
-          if pr_doc.css('.catalog-element-info__cell.catalog-element-info__cell--full').text.strip.include?('В НАЛИЧИИ')
-            quantity = pr_doc.css('.catalog-element-info__cell.catalog-element-info__cell--full .catalog-element-info__cell-item span').text.strip.gsub(' шт.','')
-          else
-            quantity = 0
-          end
+
+          oldprice_price_node = pr_doc.css('.element-info__default-price .discount')
+          oldprice = oldprice_price_node.present? ? oldprice_price_node.text.strip.gsub(' ','').gsub('руб.','').gsub('.0','') : 0
+          # if pr_doc.css('.element-sale').present?
+          #   oldprice = pr_doc.css('.element-sale').text.strip.gsub(' ','').gsub('руб.','').gsub('.0','')
+          # else
+          #   oldprice = 0
+          # end
+
+          price_node = pr_doc.css('.element-info__default-price .price')
+          price = price_node.present? ? price_node.text.strip.gsub(' ','').gsub('руб.','').gsub('.0','') : 0
+          # if pr_doc.css('.element-price').present?
+          #   price = pr_doc.css('.element-price').text.strip.gsub(' ','').gsub('руб.','').gsub('.0','')
+          # else
+          #   price = 0
+          # end
+          quantity_node = pr_doc.css('.element-info__availability-have')
+          quantity = quantity_node.present? ? quantity_node.text.split(':').last.strip.gsub(' шт.','') : 0
+          # if pr_doc.css('.catalog-element-info__cell.catalog-element-info__cell--full').text.strip.include?('В НАЛИЧИИ')
+          #   quantity = pr_doc.css('.catalog-element-info__cell.catalog-element-info__cell--full .catalog-element-info__cell-item span').text.strip.gsub(' шт.','')
+          # else
+          #   quantity = 0
+          # end
           image_array = []
-          thumbs = pr_doc.css('.element-slider__nav-image')
+          thumbs = pr_doc.css('.element-slider__nav-image img')
           if thumbs.present?
             thumbs.each do |thumb|
-              pict = 'https://idcollection.ru'+thumb.css('img')[0]['src'].gsub('/resize/197_140_1','')
+              pict = 'https://idcollection.ru'+thumb['src'].gsub('/resize/197_140_1','/resize/800_800_1')
               image_array.push(pict)
             end
           else
-            if pr_doc.css('.element-slider__image').size > 0
-              pict = 'https://idcollection.ru'+pr_doc.css('.element-slider__image')[0]['data-magnify-src']
-            else
-              pict = ''
-            end
-            image_array.push(pict)
+              # pict = pr_doc.css('.element-slider__image').size > 0 ? 'https://idcollection.ru'+pr_doc.css('.element-slider__image')[0]['data-magnify-src'] : ''
+              pict = pr_doc.css('.element-slider__image').size > 0 ? 'https://idcollection.ru'+pr_doc.css('.element-slider__image')[0]['src'] : ''
+              image_array.push(pict)
           end
           image = image_array.join(' ')
           product = Product.find_by_sku(sku)
