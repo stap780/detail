@@ -138,21 +138,13 @@ class ProductsController < ApplicationController
   end
 
   def import
-    if Rails.env.development?
-      Product.import
-    else
-      Product.delay.import
-    end
+    Rails.env.development? ? Product.import : Product.delay.import
     flash[:notice] = 'Задача обновления каталога запущена'
     redirect_to products_path
   end
 
   def csv_param
-    if Rails.env.development?
-      Product.csv_param
-    else
-      Product.delay.csv_param
-    end
+    Rails.env.development? ? Product.csv_param : Product.delay.csv_param
     flash[:notice] = "Запустили"
     redirect_to products_path
   end
