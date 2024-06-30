@@ -12,7 +12,7 @@
 # set :delayed_job_roles, [:app]
 # set :delayed_job_pid_dir, '/tmp'
 
-lock "~> 3.18.1"
+lock "~> 3.19.0"
 
 server '104.131.21.204', user: 'deploy', roles: %w{app db web}
 
