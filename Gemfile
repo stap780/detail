@@ -68,7 +68,7 @@ group :development do
   gem 'capistrano-rails', require: false
   gem 'capistrano-rails-console', require: false
   gem 'capistrano-rvm', require: false
-  gem 'capistrano3-puma', require: false
+  gem 'capistrano3-puma', github: "seuros/capistrano-puma"
   # gem 'capistrano3-unicorn'
   # gem 'capistrano3-delayed-job', '~> 1.0'
   gem 'hub', :require=>nil
