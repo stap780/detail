@@ -20,7 +20,7 @@ namespace :file do
               File.open(log_file , 'w+') do |f|
                   f.write("Time - #{Time.zone.now}")
               end
-              FileUtils.chown('detaildep', 'detaildep', file_path)
+              FileUtils.chown('deploy', 'deploy', file_path)
           end
         puts "finish create_log_zip_every_day"
     end
