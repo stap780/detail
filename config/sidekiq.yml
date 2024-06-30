@@ -1,0 +1,18 @@
+:concurrency: 5
+
+:queues:
+    - default
+    - kare_pars_page
+    - kare_collect_links
+    - product_import
+    - product_csv_param
+:scheduler:
+  :dynamic: true
+
+
+development:
+  :concurrency: 5
+staging:
+  :concurrency: 10
+production:
+  :concurrency: 20

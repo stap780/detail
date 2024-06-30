@@ -1,79 +1,57 @@
 <div class="row mb-2 mr-0 ml-0 align-items-center">
-  <div class="col-3">
-    <h1>Kare</h1>
-    <span class="align-middle"><small>Всего: <%= Kare.kare_all_size %></small></span>
-    <span class="align-middle"><small>Отфильтровано: <%=@kares.count%></small></span>
-    <span class="align-middle"><small>Больше 0: <%= Kare.kare_qt_not_null_size %></small></span>
+  <div class="col-2 d-flex flex-column">
+    <div><span class="h2 me-2">Kare</span><small>Всего: <%= Kare.all_size %></small></div>
+    <span><small>Отфильтровано: <%=@kares.count%></small></span>
+    <span><small>Больше 0: <%= Kare.qt_not_null_size %></small></span>
   </div>
-  <div class="col- mr-1">
-    <div class="dropdown">
-    <a class="btn btn-secondary dropdown-toggle" href="#" role="button" id="dropdownMenuLink" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-      Действия
-    </a>
-    <div class="dropdown-menu" aria-labelledby="dropdownMenuLink">
-      <%= link_to 'Обновить каталог', import_kares_path, class: 'dropdown-item'%>
-      <%= link_to 'Сформировать файл', csv_param_kares_path, class: 'dropdown-item'%>
-    </div>
+  <div class="col-1 m-0 p-0 dropdown">
+    <button id="dropdownId" type="button" class="form-control dropdown-toggle" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">Действия</button>
+    <div class="dropdown-menu checkboxes1" aria-labelledby="dropdownId">
+      <%= link_to 'Спарсить сайт', pars_kares_path, class: 'dropdown-item', data: { turbo: true, turbo_stream: true }%>
+      <%= link_to 'Обновить каталог OLD', import_kares_path, class: 'dropdown-item'%>
+      <%= link_to 'Сформировать файл', csv_param_kares_path, class: 'dropdown-item', data: { turbo: true, turbo_stream: true }%>
     </div>
   </div>
-<!--  <div class="col- mr-1">-->
-    <%#= link_to '<span class="oi oi-pencil"></span>'.html_safe, edit_multiple_products_path, class: 'btn btn-secondary', id: 'edit_multiple', remote: true, data: { toggle: 'modal', 'target': '#modal-edit' } %>
-    <%#= link_to '<span class="oi oi-trash"></span>'.html_safe, delete_selected_products_path, class: 'btn btn-secondary', id: 'deleteAll', remote: true%>
-<!--  </div>-->
-  <div class="col- ">
-    <%= search_form_for @search, html: {class: 'form-inline'}  do |f|%>
-        <%= f.search_field :sku_or_title_cont, placeholder: 'Артикул, Название', class: "form-control input-sm"%>
-        <%= f.collection_select :cat_cont, Kare.kare_cat, "cat", "cat", {include_blank: false, prompt: 'Категория'} , class: "form-control input-sm" , style: "max-width: 150px;" %>
-        <%= f.select :quantity_in, [['= 0', 0],['> 0', 1]], { include_blank: false, prompt: 'Кол-во'}, class: "form-control input-sm"  %>
-      <div class="form-group ml-2">
-        <%# f.submit 'Поиск', class: 'btn btn-info' %>
-        <%= button_tag(type: 'submit', :class => "btn btn-info") do %><span class="oi oi-magnifying-glass"></span><% end %>
-        <%= link_to '<span class="oi oi-reload"></span>'.html_safe, kares_path, class: 'btn btn-outline-dark' %>
-        <%= link_to '<span class="oi oi-list"></span>'.html_safe, kares_path(params.permit(:kares).merge(selected_kares: @kares.pluck(:id), otchet_type: 'selected')), title: "Создать файл с выбранными товарами", class: 'btn btn-outline-dark'%>
-      </div>
+  <%= search_form_for @search, html: {class: 'col m-0 p-0 form-inline'}  do |f|%>
+    <div class="input-group">
+      <%= f.search_field :sku_or_title_cont, placeholder: 'Артикул, Название', class: "form-control"%>
+      <%= f.select :status_eq, Kare::STATUS, {include_blank: false, prompt: 'Статус'} , class: "form-select" , style: "max-width: 150px;" %>
+      <%= f.collection_select :cat_cont, Kare.kare_cat, "cat", "cat", {include_blank: false, prompt: 'Категория'} , class: "form-select" , style: "max-width: 150px;" %>
+      <%= f.select :quantity_in, [['= 0', 0],['> 0', 1]], { include_blank: false, prompt: 'Кол-во'}, class: "form-select"  %>
+      <%= button_tag(type: 'submit', :class => "btn btn-info") do %><%= search_icon%><% end %>
+      <%= link_to arrow_clockwise_icon, kares_path, class: 'btn btn-outline-dark' %>
+      <%# link_to list_icon, kares_path(params.permit(:kares).merge(selected_kares: @kares.pluck(:id), otchet_type: 'selected')), title: "Создать файл с выбранными товарами", class: 'btn btn-outline-dark'%>
+    </div>
+  <% end %>
+  <%= form_with url: bulk_export_kares_path, method: :post, id: :bulk_form, class: "col-1 m-0 p-0" do |f| %>
+    <%= f.button type: :submit, class: "btn btn-outline-secondary" do %><%= list_icon%><% end%>
+    <%= f.button type: :submit, class: "btn btn-outline-secondary", formaction: delete_selected_kares_path, method: :post, data: { turbo: true, turbo_confirm: "Are you sure?" } do %><%= trash_icon%><% end%>
+    <%# f.button type: :submit, class: "", id: '', formaction: admin_products_edit_products_taxon_path, formmethod: "get" do %><%# end%>
+  <% end %>
+</div>
+
+
+<div id="datatables-kares_wrapper">
+  <div class="col-12 list-group list-group-striped" data-controller="selectall">
+    <div class="row py-2 px-0 justify-content-between align-items-center text-start">
+      <%= div_check_box_tag_all %>
+      <%= tag.div(class: 'col-1 fw-semibold ps-0' ) do %>
+        <%= sort_link(@search, :id, '', class: "text-decoration-none text-black margin-negative-left") %>
+        <%= t( 'helpers.label.kare.status')%>
+      <% end %>
+      <%= tag.div( '', class: 'col-4 fw-semibold' )%>
+      <%= tag.div( t( 'helpers.label.kare.price'), class: 'col-1 fw-semibold' )%>
+      <%= tag.div( t( 'helpers.label.kare.quantity'), class: 'col-1 fw-semibold' )%>
+      <%= tag.div( t( 'helpers.label.kare.image'), class: 'col-2 fw-semibold' )%>
+      <%= tag.div('', class: 'col fw-semibold')%>
+    </div>
+    <%= turbo_stream_from "kares" %>
+    <%= turbo_frame_tag 'kares', data: { } do %>
+        <%= render @kares %>
     <% end %>
   </div>
 </div>
 
-<div class="table-responsive">
-<table class="table table-hover table-condensed table-sm">
-  <thead class="thead-light">
-    <tr>
-      <th><%= check_box_tag 'selectAll', value = 'selectAll'%></th>
-      <th>Sku</th>
-      <th style="width:250px;">Title</th>
-      <th>Desc</th>
-      <th>Cat</th>
-      <th>Charact</th>
-      <th>Price</th>
-      <th>Quantity</th>
-      <th style="width:250px;">Image</th>
-      <th>Url</th>
-      <th colspan="2"></th>
-    </tr>
-  </thead>
-
-  <tbody id="products_table">
-    <% @kares.each do |product| %>
-      <tr>
-        <td><%=check_box_tag "product_ids[]", product.id%></td>
-        <td><%= product.sku %></td>
-        <td><%= link_to product.title, edit_kare_path(product) %></td>
-        <td><%= product.desc.truncate(25) if product.desc != nil%></td>
-        <td><%= product.cat %></td>
-        <td><%= product.charact %></td>
-        <td><%= product.price %></td>
-        <td><%= product.quantity %></td>
-        <td class="row ml-0 mr-0"><% product.image.split(' ').each do |pict| %><div class="w-25"><img class="img-thumbnail" src="<%= pict %>"></div><% end %></td>
-        <td><% if product.url.present? %><%= link_to 'Товар у поставщика', product.url , target: 'blank' %><%end%></td>
-        <td><%= link_to '<span class="oi oi-eye"></span>'.html_safe, product %></td>
-        <td><%= link_to '<span class="oi oi-trash"></span>'.html_safe, product, method: :delete, data: { confirm: 'Вы уверенны?' } %></td>
-      </tr>
-    <% end %>
-  </tbody>
-</table>
-</div>
-
-<div class="digg_pagination mt-4 mb-4">
-    <%= will_paginate @kares %>
+<div class="mt-4 mb-4">
+  <%= will_paginate @kares, renderer: WillPaginate::ActionView::BootstrapLinkRenderer, list_classes: %w(pagination justify-content-end my-4) %>
 </div>

@@ -3,15 +3,34 @@ git_source(:github) do |repo_name|
   repo_name = "#{repo_name}/#{repo_name}" unless repo_name.include?("/")
   "https://github.com/#{repo_name}.git"
 end
-# ruby '2.4.4'
-gem 'rails', '~> 5.0.7', '>= 5.0.7.2'
-gem 'puma', '~> 3.0'
-gem 'sass-rails', '~> 5.0'
-gem 'uglifier', '>= 1.3.0'
-gem 'coffee-rails', '~> 4.2'
-gem 'jquery-rails'
+# # ruby '2.4.4'
+# gem 'rails', '~> 5.0.7', '>= 5.0.7.2'
+
+ruby "3.2.0"
+gem "rails", "~> 7.1.1"
+
+# gem 'puma', '~> 3.0'
+gem "puma", ">= 6.0"
+
+# The original asset pipeline for Rails [https://github.com/rails/sprockets-rails]
+gem "sprockets-rails"
+
+# Bundle and transpile JavaScript [https://github.com/rails/jsbundling-rails]
+gem "jsbundling-rails"
+
+# Hotwire's SPA-like page accelerator [https://turbo.hotwired.dev]
+gem "turbo-rails"
+
+# Hotwire's modest JavaScript framework [https://stimulus.hotwired.dev]
+gem "stimulus-rails"
+
+# Use Redis adapter to run Action Cable in production
+gem "redis", ">= 4.0.1"
+
+gem "bootsnap", require: false
+gem "gem-release"
+
 gem 'jbuilder', '~> 2.5'
-gem 'bootstrap'
 gem 'devise'
 gem 'high_voltage'
 gem 'simple_form'
@@ -24,31 +43,37 @@ gem 'roo'
 gem 'roo-xls'
 gem 'whenever', require: false
 gem 'mechanize'
-gem 'pg', '~> 0.18'
-gem 'delayed_job_active_record'
+gem 'pg'
+
 gem 'daemons'
 gem 'bcrypt_pbkdf', '< 2.0', :require => false
 gem 'ed25519', '~> 1.2', '>= 1.2.4'
+
+gem "sidekiq"
+gem "faraday"
+gem 'net-ftp'
+gem 'will_paginate-bootstrap-style'
 
 group :development, :test do
   gem 'byebug', platform: :mri
 end
 group :development do
   gem 'web-console', '>= 3.3.0'
-  gem 'listen', '~> 3.0.5'
-  gem 'spring'
-  gem 'spring-watcher-listen', '~> 2.0.0'
-  gem 'better_errors'
-  gem 'capistrano'#, '~> 3.0.1'
-  gem 'capistrano-bundler'
-  gem 'capistrano-rails'#, '~> 1.1.0'
-  gem 'capistrano-rails-console'
-  gem 'capistrano-rvm'#, '~> 0.1.1'
-  gem 'capistrano3-unicorn'
-  gem 'capistrano3-delayed-job', '~> 1.0'
+  # gem 'listen', '~> 3.0.5'
+  # gem 'spring'
+  # gem 'spring-watcher-listen', '~> 2.0.0'
+  # gem 'better_errors'
+  gem 'capistrano', require: false
+  gem 'capistrano-bundler', require: false
+  gem 'capistrano-rails', require: false
+  gem 'capistrano-rails-console', require: false
+  gem 'capistrano-rvm', require: false
+  gem 'capistrano3-puma', require: false
+  # gem 'capistrano3-unicorn'
+  # gem 'capistrano3-delayed-job', '~> 1.0'
   gem 'hub', :require=>nil
   gem 'rails_layout'
 end
-group :production do
-  gem 'unicorn'
-end
+
+
+gem "cssbundling-rails", "~> 1.4"

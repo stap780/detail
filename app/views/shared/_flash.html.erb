@@ -1,0 +1,6 @@
+<% flash.each do |k, v| %>
+    <div class="<%= flash_class(k) %> alert-dismissible  p-2" role="alert" data-controller="flash">
+        <button type="button" class="btn-close position-absolute top-50 end-0 translate-middle-y" data-bs-dismiss="alert" aria-label="Close"></button>
+        <div class="alert-message"><%= v %></div>
+    </div>
+<% end %>

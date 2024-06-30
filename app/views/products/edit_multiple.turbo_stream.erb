@@ -1,0 +1,27 @@
+<%= turbo_stream.update "modal", '' %>
+<%= turbo_stream.update "modal" do %>
+  <div class="form-group mt-0">
+    Выбрано: <%= @products.count %> шт
+  </div>
+  <%= form_tag update_multiple_products_path, method: :put , id: 'form_edit_multi' do %>
+  <%@products.each do |pr|%>
+    <%= hidden_field_tag "product_ids[]", pr.id , id: "product_id_"+pr.id.to_s%>
+  <% end %>
+
+  <%= fields_for :product_attr do |f| %>
+  <div class="form-group">
+    <%= f.label :oldprice, 'Старая цена' %><br />
+    <%= f.number_field :oldprice,  { min: 1, class: "form-control"} %>
+  </div>
+    <!-- <div class="form-group">
+      <%# f.label :catins, 'Категория Инсалес' %><br />
+      <%# f.select :catins, Product.order('id asc').map { |r| [r.catins] }, {:include_blank => true}, {class: "form-control"} %>
+    </div> -->
+  <% end %>
+  <div class="form-group mt-3">
+    <%= submit_tag "Обновить", class: "btn btn-primary" %>
+    <button type="button" class="btn btn-outline-dark" data-dismiss="modal">Отменить</button>
+  </div>
+  <% end %>
+<% end %>
+<%= turbo_stream_action_tag :open_modal, targets: '.modal' %>

@@ -1,15 +1,53 @@
-require 'net/ftp'
-
 class Kare < ApplicationRecord
-
+  require 'net/ftp'
   require 'open-uri'
+  before_save :normalize_data_white_space
+  after_create_commit { broadcast_prepend_to "kares" }
+  after_update_commit { broadcast_replace_to "kares" }
+  after_destroy_commit { broadcast_remove_to "kares" }
 
-  scope :kare_all_size, -> { order(:id).size }
+
+  scope :all_size, -> { order(:id).size }
   scope :kare_qt_not_null, -> { where('quantity > 0') }
-  scope :kare_qt_not_null_size, -> { where('quantity > 0').size }
+  scope :qt_not_null_size, -> { where('quantity > 0').size }
   scope :kare_cat, -> { order('cat DESC').select(:cat).uniq }
   scope :kare_image_nil, -> { where(image: [nil, '']).order(:id) }
-  validates :sku, uniqueness: true
+  scope :finished, -> { where(status: 'finish').order(:id) }
+  # validates :sku, uniqueness: true
+  validates :url, uniqueness: true
+
+  STATUS = ["new","process","finish","error"]
+  Proxy = {
+      0 => "38.154.227.167:5868",
+      1 => "185.199.229.156:7492",
+      2 => "185.199.228.220:7300",
+      3 => "185.199.231.45:8382",
+      4 => "188.74.210.207:6286",
+      5 => "188.74.183.10:8279",
+      6 => "188.74.210.21:6100",
+      7 => "45.155.68.129:8133",
+      8 => "154.95.36.199:6893",
+      9 => "45.94.47.66:8110" }
+
+
+  def self.ransackable_attributes(auth_object = nil)
+      Kare.attribute_names
+  end
+  def self.ransackable_associations(auth_object = nil)
+    []
+  end
+  
+  def self.pars
+    service = KareCollectLinks.new.call
+    if service
+      Kare.order(:id).limit(100).each_with_index do |kare, index|
+        puts "index => #{index}"
+        proxy = Kare::Proxy[index.to_s.split('').last.to_i]
+        # KareParsPageJob.perform_later(kare.url, proxy)
+        KareParsPage.new(kare.url, proxy).call
+      end
+    end
+  end
 
   def self.import
     puts "====>>>> START Import KARE === #{Time.now}"
@@ -103,7 +141,7 @@ class Kare < ApplicationRecord
   end
 
   def self.csv_param
-    products = Kare.all.order(:id)
+    products = Kare.all.finished
     Kare.csv_param_selected(products, 'full')
   end
 
@@ -232,5 +270,24 @@ class Kare < ApplicationRecord
         csv_out << row
       end
     end
+    
+    Turbo::StreamsChannel.broadcast_replace_to(
+      # User.find(current_user.id),
+      "bulk_actions",
+      target: "modal",
+      template: "shared/success_bulk",
+      layout: false,
+      locals: {bulk_print: new_file}
+    )
+
   end
+
+  private
+
+  def normalize_data_white_space
+	  self.attributes.each do |key, value|
+	  	self[key] = value.squish if value.respond_to?("squish")
+	  end
+  end
+  
 end

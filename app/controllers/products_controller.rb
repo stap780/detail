@@ -1,5 +1,4 @@
 class ProductsController < ApplicationController
-
   before_action :authenticate_user!
   before_action :set_product, only: [:show, :edit, :update, :destroy]
 
@@ -27,11 +26,11 @@ class ProductsController < ApplicationController
     @search = Product.ransack(new_q)
     @search.sorts = 'id desc' if @search.sorts.empty?
     @products = @search.result.paginate(page: params[:page], per_page: 100)
-    if params['otchet_type'] == 'selected'
-      Product.csv_param_selected( params['selected_products'], params['otchet_type'])
-      new_file = "#{Rails.public_path}"+'/ins_detail_selected.csv'
-      send_file new_file, :disposition => 'attachment'
-    end
+    # if params['otchet_type'] == 'selected'
+    #   Product.csv_param_selected( params['selected_products'], params['otchet_type'])
+    #   new_file = "#{Rails.public_path}"+'/ins_detail_selected.csv'
+    #   send_file new_file, :disposition => 'attachment'
+    # end
   end
 
   # GET /products/1
@@ -85,6 +84,13 @@ class ProductsController < ApplicationController
     respond_to do |format|
       format.html { redirect_to products_url, notice: 'Product was successfully destroyed.' }
       format.json { head :no_content }
+      flash.now[:success] = 'Product was successfully destroyed.'
+      format.turbo_stream do
+        render turbo_stream: [
+          turbo_stream.remove(@product),
+          render_turbo_flash
+        ]
+      end
     end
   end
 
@@ -92,12 +98,21 @@ class ProductsController < ApplicationController
     puts params[:product_ids].present?
     if params[:product_ids].present?
 			@products = Product.find(params[:product_ids])
-			respond_to do |format|
-			  format.js
-			end
-		else
-			redirect_to products_url
-		end
+      respond_to do |format|
+        format.turbo_stream
+      end
+    else
+      respond_to do |format|
+        format.html { redirect_to products_url, notice: 'select products' }
+        format.json { head :no_content }
+        flash.now[:success] = 'select products'
+        format.turbo_stream do
+          render turbo_stream: [
+            render_turbo_flash
+          ]
+        end
+      end
+    end
   end
 
   def update_multiple
@@ -126,27 +141,87 @@ class ProductsController < ApplicationController
 		redirect_to :back
   end
 
+  def bulk_export
+    if params[:product_ids].present?
+      # new_file = "#{Rails.public_path}"+'/ins_idcollection_selected.csv'
+      respond_to do |format|
+        format.html { redirect_to products_url, notice: 'Product print' }
+        format.json { head :no_content }
+        flash.now[:success] = 'Product print.'
+        format.turbo_stream
+      end
+      products = Product.where(id: params[:product_ids].split(','))
+      Product.csv_param_selected(products, 'selected')
+    else
+      respond_to do |format|
+        format.html { redirect_to products_url, notice: 'select products' }
+        format.json { head :no_content }
+        flash.now[:success] = 'select products'
+        format.turbo_stream do
+          render turbo_stream: [
+            render_turbo_flash
+          ]
+        end
+      end
+    end
+  end
+
   def delete_selected
-    @products = Product.find(params[:ids])
-		@products.each do |product|
-		    product.destroy
-		end
-		respond_to do |format|
-		  format.html { redirect_to products_url, notice: 'Товары удалёны' }
-		  format.json { render json: {:status => "ok", :message => "Товары удалёны"} }
-		end
+    if params[:product_ids].present?
+      products = Product.where(id: params[:product_ids].split(','))
+      products.each do |product|
+        product.destroy
+      end
+      respond_to do |format|
+        format.html { redirect_to products_url, notice: 'Products was successfully destroyed.' }
+        format.json { head :no_content }
+        flash.now[:success] = 'Products was successfully destroyed.'
+        format.turbo_stream do
+          render turbo_stream: [
+            render_turbo_flash
+          ]
+        end
+      end
+    else
+      respond_to do |format|
+        format.html { redirect_to products_url, notice: 'select products' }
+        format.json { head :no_content }
+        flash.now[:success] = 'select products'
+        format.turbo_stream do
+          render turbo_stream: [
+            render_turbo_flash
+          ]
+        end
+      end
+    end
   end
 
   def import
-    Rails.env.development? ? Product.import : Product.delay.import
-    flash[:notice] = 'Задача обновления каталога запущена'
-    redirect_to products_path
+    ProductImportJob.perform_later
+    respond_to do |format|
+      format.html { redirect_to products_url, notice: 'Задача обновления каталога запущена' }
+      format.json { head :no_content }
+      flash.now[:success] = 'Задача обновления каталога запущена'
+      format.turbo_stream do
+        render turbo_stream: [
+          render_turbo_flash
+        ]
+      end
+    end
   end
 
   def csv_param
-    Rails.env.development? ? Product.csv_param : Product.delay.csv_param
-    flash[:notice] = "Запустили"
-    redirect_to products_path
+    ProductCsvParamJob.perform_later
+    respond_to do |format|
+      format.html { redirect_to products_url, notice: 'Запустили' }
+      format.json { head :no_content }
+      flash.now[:success] = 'Запустили'
+      format.turbo_stream do
+        render turbo_stream: [
+          render_turbo_flash
+        ]
+      end
+    end
   end
 
   private
@@ -157,6 +232,6 @@ class ProductsController < ApplicationController
 
     # Only allow a list of trusted parameters through.
     def product_params
-      params.require(:product).permit(:sku, :title, :desc, :cat, :charact, :charact_gab, :oldprice, :price, :quantity, :image, :url)
+      params.require(:product).permit(:status, :sku, :title, :desc, :cat, :charact, :charact_gab, :oldprice, :price, :quantity, :image, :url)
     end
 end

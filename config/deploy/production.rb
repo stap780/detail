@@ -22,11 +22,11 @@
 # it's possible to pass any option but you need to keep in mind that net/ssh understand limited list of options
 # you can see them in [net/ssh documentation](http://net-ssh.github.io/net-ssh/classes/Net/SSH.html#method-c-start)
 # set it globally
-set :ssh_options, {
-  keys: %w(/Users/egrorails/.ssh/id_rsa),
-  forward_agent: true,
-  auth_methods: %w(publickey password)
-}
+# set :ssh_options, {
+#   keys: %w(/Users/egrorails/.ssh/id_rsa),
+#   forward_agent: true,
+#   auth_methods: %w(publickey password)
+# }
 # and/or per server
 # server 'example.com',
 #   user: 'user_name',
@@ -42,5 +42,5 @@ set :ssh_options, {
 
 # fetch(:default_env).merge!(rails_env: :production)
 
-server '104.131.21.204', user: 'deploy', roles: %w{app db web}
-set :unicorn_rack_env, -> { "production" }
+# server '104.131.21.204', user: 'deploy', roles: %w{app db web}
+# set :unicorn_rack_env, -> { "production" }

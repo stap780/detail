@@ -3,46 +3,36 @@
   <head>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <%= csrf_meta_tags %>
-    <%= stylesheet_link_tag 'application', media: 'all' %>
-    <%= javascript_include_tag 'application' %>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/open-iconic/1.1.1/font/css/open-iconic-bootstrap.min.css" integrity="sha256-BJ/G+e+y7bQdrYkS2RBTyNfBHpA9IuGaPmf9htub5MQ=" crossorigin="anonymous" />
+    <%= stylesheet_link_tag "application", "data-turbo-track": "reload" %>
+    <%= javascript_include_tag "application", "data-turbo-track": "reload", type: "module" %>
     <title><%= content_for?(:title) ? yield(:title) : "Detail" %></title>
     <meta name="description" content="<%= content_for?(:description) ? yield(:description) : "Detail" %>">
+    <meta name="turbo-prefetch" content="false">
   </head>
   <body class="d-flex flex-column min-vh-100">
-    <header>
     <% if user_signed_in? %>
+    <header>
       <%= render 'layouts/navigation' %>
-    <% end %>
     </header>
     <main role="main" class="container-fluid mb-5">
-       <%= render 'layouts/messages' %>
+      <div id="our_flash" class="position-absolute z-1 start-50 translate-middle-x w-50" style="top: 60px;">
+        <%= render "shared/flash"%>
+      </div>
+      <%= render "shared/modal_wrap"%>
+       <%= turbo_stream_from "bulk_actions"%>
        <%= yield %>
     </main>
-    <% if user_signed_in? %>
       <footer class="text-muted bg-light pt-3 pb-3 mt-auto">
-        <div class="container">
-          <p class="float-right">
-            <a href="#">Back to top</a>
-          </p>
+        <div class="container d-flex justify-content-between align-items-center">
           <p>detail <a href="http://#" target="_blank">Visit us</a></p>
+          <a href="#">Back to top</a>
         </div>
       </footer>
+
+
+    <% else %>
+      <%= yield %>
     <% end %>
-    <div class="modal fade"  id="modal-edit" role="dialog" tabindex="-1" aria-labelledby="editmodalLabel" aria-hidden="true">
-      <div class="modal-dialog" role="document">
-        <div class="modal-content">
-          <div class="modal-header">
-            <h4 class="modal-title" id="editmodalLabel">Редактирование<br><small></small></h4>
-            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-            <span aria-hidden="true">&times;</span>
-            </button>
-          </div>
-          <div class="modal-body">
-          </div>
-        </div>
-      </div>
-    </div>
 
 
   </body>

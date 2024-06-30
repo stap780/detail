@@ -1,19 +1,31 @@
 class Product < ApplicationRecord
-
+  # include Turbo::Streams::ActionHelper
   require 'open-uri'
 
-  scope :product_all_size, -> { order(:id).size }
+  after_create_commit { broadcast_prepend_to "products" }
+  after_update_commit { broadcast_replace_to "products" }
+  after_destroy_commit { broadcast_remove_to "products" }
+
+  scope :all_size, -> { order(:id).size }
   scope :product_qt_not_null, -> { where('quantity > 0') }
-  scope :product_qt_not_null_size, -> { where('quantity > 0').size }
+  scope :qt_not_null_size, -> { where('quantity > 0').size }
   scope :product_cat, -> { order('cat DESC').select(:cat).uniq }
   scope :product_image_nil, -> { where(image: [nil, '']).order(:id) }
   validates :sku, uniqueness: true
+  STATUS = ["new","process","finish","error"]
 
+  def self.ransackable_attributes(auth_object = nil)
+    Product.attribute_names
+  end
+  def self.ransackable_associations(auth_object = nil)
+    []
+  end
+  
   def self.import
     puts 'start import '+Time.now.in_time_zone('Moscow').to_s
     Product.update_all(quantity: 0)
     url = "https://idcollection.ru/catalogue/producers/eichholtz"
-    doc = Nokogiri::HTML(open(url, :read_timeout => 50))
+    doc = Nokogiri::HTML(URI.open(url, :read_timeout => 50))
 		paginate_number = doc.css(".pagenavigation__nav.pagenavigation__nav--next")[0]['data-max-page']
     if Rails.env.development?
       count = 4
@@ -24,7 +36,7 @@ class Product < ApplicationRecord
     page_array = Array(1..count.to_i)
 		page_array.each do |page|
       puts 'page '+page.to_s
-      cat_l = url+"?PAGEN_2="+page.to_s
+      cat_l = page == 1 ? url : url+"?PAGEN_2="+page.to_s
       cat_doc = Nokogiri::HTML(open(cat_l, :read_timeout => 50))
         product_urls = cat_doc.css('.catalog-section__title-link')
         product_urls.each do |purl|
@@ -67,13 +79,13 @@ class Product < ApplicationRecord
           thumb_node = pr_doc.css('.element-slider__nav-image img')
     			pict_thumbs = thumb_node.present? ? thumb_node.map{ |p| p["src"] } : [""]
     			picts |= pict_thumbs
-          image = picts.map{ |a| "https://idcollection.ru"+a.gsub("197_140_1","800_800_1") }.join(' ')
+          image = picts.map{ |a| "https://idcollection.ru"+a.gsub("197_140_1","800_800_1") if !a.include?('3dbutton')}.join(' ')
 
           product = Product.find_by_sku(sku)
           if product.present?
-            product.update_attributes(title: title, desc: desc, cat: cat, charact: charact, charact_gab: charact_gab, oldprice: oldprice, price: price, quantity: quantity, image: image, url: pr_url)
+            product.update(title: title, desc: desc, cat: cat, charact: charact, charact_gab: charact_gab, oldprice: oldprice, price: price, quantity: quantity, image: image, url: pr_url, status: 'finish')
           else
-            Product.create(sku: sku, title: title, desc: desc, cat: cat, charact: charact, charact_gab: charact_gab, oldprice: oldprice, price: price, quantity: quantity, image: image, url: pr_url)
+            Product.create(sku: sku, title: title, desc: desc, cat: cat, charact: charact, charact_gab: charact_gab, oldprice: oldprice, price: price, quantity: quantity, image: image, url: pr_url, status: 'finish')
           end
         when 404
   	# 			puts response
@@ -90,8 +102,8 @@ class Product < ApplicationRecord
         end
     end
 
-    productcount = Product.product_qt_not_null_size ||= "0"
-		productall = Product.product_all_size ||= "0"
+    productcount = Product.qt_not_null_size ||= "0"
+		productall = Product.all_size ||= "0"
     # ProductMailer.downloadproduct_product(productcount, productall).deliver_now
     puts 'end import '+Time.now.in_time_zone('Moscow').to_s
   end
@@ -103,9 +115,9 @@ class Product < ApplicationRecord
 
   def self.csv_param_selected(products, otchet_type)
     if otchet_type == 'selected'
-      file = "#{Rails.public_path}"+'/detail_selected.csv'
+      file = "#{Rails.public_path}"+'/idcollection_selected.csv'
     else
-		  file = "#{Rails.public_path}"+'/detail.csv'
+		  file = "#{Rails.public_path}"+'/idcollection.csv'
     end
 		check = File.file?(file)
 		if check.present?
@@ -113,9 +125,9 @@ class Product < ApplicationRecord
 		end
 
     if otchet_type == 'selected'
-      file_ins = "#{Rails.public_path}"+'/ins_detail_selected.csv'
+      file_ins = "#{Rails.public_path}"+'/ins_idcollection_selected.csv'
     else
-		  file_ins = "#{Rails.public_path}"+'/ins_detail.csv'
+		  file_ins = "#{Rails.public_path}"+'/ins_idcollection.csv'
     end
 		check = File.file?(file_ins)
 		if check.present?
@@ -125,9 +137,9 @@ class Product < ApplicationRecord
 		#создаём файл со статичными данными
 		@tovs = Product.where(id: products).order(:id)#.limit(10) #where('title like ?', '%Bellelli B-bip%')
     if otchet_type == 'selected'
-      file = "#{Rails.root}/public/detail_selected.csv"
+      file = "#{Rails.root}/public/idcollection_selected.csv"
     else
-      file = "#{Rails.root}/public/detail.csv"
+      file = "#{Rails.root}/public/idcollection.csv"
     end
 		CSV.open( file, 'w') do |writer|
 		headers = ['fid','Артикул', 'Название товара', 'Полное описание', 'Цена продажи', 'Старая цена' , 'Остаток', 'Изображения', 'Подкатегория 1', 'Подкатегория 2', 'Подкатегория 3', 'Подкатегория 4', 'Параметр: Ширина', 'Параметр: Глубина', 'Параметр: Высота', 'Параметр: Глубина сиденья', 'Параметр: Высота сиденья', 'Параметр: Диаметр' ]
@@ -242,9 +254,9 @@ class Product < ApplicationRecord
 
 		# заполняем параметры по каждому товару в файле
     if otchet_type == 'selected'
-      new_file = "#{Rails.public_path}"+'/ins_detail_selected.csv'
+      new_file = "#{Rails.public_path}"+'/ins_idcollection_selected.csv'
     else
-		  new_file = "#{Rails.public_path}"+'/ins_detail.csv'
+		  new_file = "#{Rails.public_path}"+'/ins_idcollection.csv'
     end
 		CSV.open(new_file, "w") do |csv_out|
 			rows = CSV.read(file, headers: true).collect do |row|
@@ -276,6 +288,16 @@ class Product < ApplicationRecord
 		end
 
     # ProductMailer.ins_file(new_file).deliver_now
+
+    Turbo::StreamsChannel.broadcast_replace_to(
+      # User.find(current_user.id),
+      "bulk_actions",
+      target: "modal",
+      template: "shared/success_bulk",
+      layout: false,
+      locals: {bulk_print: new_file}
+    )
+
 	end
 
   def self.clean_sm
