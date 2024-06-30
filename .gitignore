@@ -96,3 +96,5 @@ pickle-email-*.html
 !/app/assets/builds/.keep
 
 /node_modules
+
+/config/master.key
