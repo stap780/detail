@@ -59,18 +59,12 @@ group :development, :test do
 end
 group :development do
   gem 'web-console', '>= 3.3.0'
-  # gem 'listen', '~> 3.0.5'
-  # gem 'spring'
-  # gem 'spring-watcher-listen', '~> 2.0.0'
-  # gem 'better_errors'
   gem 'capistrano', require: false
   gem 'capistrano-bundler', require: false
   gem 'capistrano-rails', require: false
   gem 'capistrano-rails-console', require: false
   gem 'capistrano-rvm', require: false
   gem 'capistrano3-puma', github: "seuros/capistrano-puma"
-  # gem 'capistrano3-unicorn'
-  # gem 'capistrano3-delayed-job', '~> 1.0'
   gem 'hub', :require=>nil
   gem 'rails_layout'
 end
