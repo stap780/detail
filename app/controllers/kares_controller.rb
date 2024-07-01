@@ -68,22 +68,16 @@ class KaresController < ApplicationController
     end
   end
 
-  # GET /products/1
-  # GET /products/1.json
   def show
   end
 
-  # GET /products/new
   def new
     @kare = Kare.new
   end
 
-  # GET /products/1/edit
   def edit
   end
 
-  # POST /products
-  # POST /products.json
   def create
     @kare = Kare.new(kare_params)
 
@@ -98,8 +92,6 @@ class KaresController < ApplicationController
     end
   end
 
-  # PATCH/PUT /products/1
-  # PATCH/PUT /products/1.json
   def update
     respond_to do |format|
       if @kare.update(kare_params)
@@ -112,8 +104,6 @@ class KaresController < ApplicationController
     end
   end
 
-  # DELETE /products/1
-  # DELETE /products/1.json
   def destroy
     @kare.destroy
     respond_to do |format|
