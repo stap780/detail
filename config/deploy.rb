@@ -54,7 +54,7 @@ namespace :deploy do
     on roles(:app) do
       # Update this to your branch name: master, main, etc. Here it's master
       unless `git rev-parse HEAD` == `git rev-parse origin/main`
-        puts "WARNING: HEAD is not the same as origin/main"
+        puts "WARNING: HEAD is not the same as origin/master"
         puts "Run `git push` to sync changes."
         exit
       end
