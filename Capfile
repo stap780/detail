@@ -11,5 +11,6 @@ require "whenever/capistrano"
 require 'capistrano/rails/console'
 
 require "capistrano/puma"
-# install_plugin Capistrano::Puma
+install_plugin Capistrano::Puma
+# install_plugin Capistrano::Puma::Systemd
 Dir.glob("lib/capistrano/tasks/*.rake").each { |r| import r }

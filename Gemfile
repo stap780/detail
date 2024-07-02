@@ -64,7 +64,7 @@ group :development do
   gem 'capistrano-rails', require: false
   gem 'capistrano-rails-console', require: false
   gem 'capistrano-rvm', require: false
-  gem 'capistrano3-puma', github: "seuros/capistrano-puma"
+  gem "capistrano3-puma", require: false
   gem 'hub', :require=>nil
   gem 'rails_layout'
 end
