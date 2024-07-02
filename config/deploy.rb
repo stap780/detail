@@ -14,7 +14,7 @@
 
 lock "~> 3.19.0"
 
-server '142.93.5.131', user: 'deploy', roles: %w{app db web}
+server '104.131.21.204', user: 'deploy', roles: %w{app db web}
 
 set :application, "detail"
 set :repo_url, "git@github.com:stap780/#{fetch(:application)}.git"
