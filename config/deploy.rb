@@ -39,6 +39,7 @@ namespace :puma do
     task :make_dirs do
       on roles(:app) do
         execute "mkdir #{shared_path} -p"
+        execute "mkdir #{shared_path}/config -p"
         execute "mkdir #{shared_path}/tmp/sockets -p"
         execute "mkdir #{shared_path}/tmp/pids -p"
       end
@@ -52,17 +53,43 @@ namespace :deploy do
   task :check_revision do
     on roles(:app) do
       # Update this to your branch name: master, main, etc. Here it's master
-      unless `git rev-parse HEAD` == `git rev-parse origin/master`
-        puts "WARNING: HEAD is not the same as origin/master"
+      unless `git rev-parse HEAD` == `git rev-parse origin/main`
+        puts "WARNING: HEAD is not the same as origin/main"
         puts "Run `git push` to sync changes."
         exit
       end
     end
   end
 
+  desc 'Initial Deploy'
+  task :initial do
+    on roles(:app) do
+      before 'deploy:restart', 'puma:start'
+      invoke 'deploy'
+    end
+  end
+
+  desc 'Restart application'
+    task :restart do
+      on roles(:app), in: :sequence, wait: 5 do
+        invoke 'puma:restart'
+      end
+  end
+
+  # namespace :sidekiq do  
+  #   desc 'Restart Sidekiq'
+  #   task :restart do
+  #     on roles(:app) do
+  #       execute :sudo, :systemctl, :restart, :sidekiq
+  #       execute :sudo, :systemctl, 'daemon-reload'
+  #     end
+  #   end
+  # end
+
   before :starting,     :check_revision
   after  :finishing,    :compile_assets
   after  :finishing,    :cleanup
+  # after 'deploy:published', 'sidekiq:restart'
   
 end
   
