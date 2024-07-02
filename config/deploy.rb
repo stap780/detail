@@ -14,7 +14,7 @@
 
 lock "~> 3.19.0"
 
-server '104.131.21.204', user: 'deploy', roles: %w{app db web}
+server '142.93.5.131', user: 'deploy', roles: %w{app db web}
 
 set :application, "detail"
 set :repo_url, "git@github.com:stap780/#{fetch(:application)}.git"
@@ -38,6 +38,7 @@ namespace :puma do
     desc 'Create Directories for Puma Pids and Socket'
     task :make_dirs do
       on roles(:app) do
+        execute "mkdir #{shared_path} -p"
         execute "mkdir #{shared_path}/tmp/sockets -p"
         execute "mkdir #{shared_path}/tmp/pids -p"
       end
