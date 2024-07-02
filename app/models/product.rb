@@ -32,7 +32,6 @@ class Product < ApplicationRecord
     else
       count = paginate_number.presence || '1'
     end
-    puts count
     page_array = Array(1..count.to_i)
 		page_array.each do |page|
       puts 'page '+page.to_s
@@ -46,7 +45,7 @@ class Product < ApplicationRecord
             case response.code
       			when 200
               pr_doc = Nokogiri::HTML(response)
-          puts pr_url
+              puts pr_url
           title= pr_doc.css('h1').text
           # puts title
           desc = pr_doc.css('.catalog-element-description__text').text.strip
@@ -114,100 +113,86 @@ class Product < ApplicationRecord
   end
 
   def self.csv_param_selected(products, otchet_type)
-    if otchet_type == 'selected'
-      file = "#{Rails.public_path}"+'/idcollection_selected.csv'
-    else
-		  file = "#{Rails.public_path}"+'/idcollection.csv'
-    end
-		check = File.file?(file)
-		if check.present?
-			File.delete(file)
-		end
+    file = otchet_type == 'selected' ? "#{Rails.public_path}/idcollection_selected.csv" :  "#{Rails.public_path}/idcollection.csv"
 
-    if otchet_type == 'selected'
-      file_ins = "#{Rails.public_path}"+'/ins_idcollection_selected.csv'
-    else
-		  file_ins = "#{Rails.public_path}"+'/ins_idcollection.csv'
-    end
-		check = File.file?(file_ins)
-		if check.present?
-			File.delete(file_ins)
-		end
+    check_file = File.file?(file)
+		File.delete(file) if check_file.present?
+
+    file_ins = otchet_type == 'selected' ? "#{Rails.public_path}/ins_idcollection_selected.csv" : "#{Rails.public_path}/ins_detail.csv"
+
+    check_file_ins = File.file?(file_ins)
+		File.delete(file_ins) if check_file_ins.present?
 
 		#создаём файл со статичными данными
 		@tovs = Product.where(id: products).order(:id)#.limit(10) #where('title like ?', '%Bellelli B-bip%')
-    if otchet_type == 'selected'
-      file = "#{Rails.root}/public/idcollection_selected.csv"
-    else
-      file = "#{Rails.root}/public/idcollection.csv"
-    end
+    
 		CSV.open( file, 'w') do |writer|
-		headers = ['fid','Артикул', 'Название товара', 'Полное описание', 'Цена продажи', 'Старая цена' , 'Остаток', 'Изображения', 'Подкатегория 1', 'Подкатегория 2', 'Подкатегория 3', 'Подкатегория 4', 'Параметр: Ширина', 'Параметр: Глубина', 'Параметр: Высота', 'Параметр: Глубина сиденья', 'Параметр: Высота сиденья', 'Параметр: Диаметр' ]
+		  headers = ['fid','Артикул', 'Название товара', 'Полное описание', 'Цена продажи', 'Старая цена' , 'Остаток', 'Изображения', 'Подкатегория 1', 'Подкатегория 2', 'Подкатегория 3', 'Подкатегория 4', 'Параметр: Ширина', 'Параметр: Глубина', 'Параметр: Высота', 'Параметр: Глубина сиденья', 'Параметр: Высота сиденья', 'Параметр: Диаметр' ]
 
-		writer << headers
-		@tovs.each do |pr|
-			if pr.title != nil
-        puts "pr.id - "+pr.id.to_s
-				fid = pr.id
-				sku = pr.sku
-        title = pr.title.gsub('Eichholtz','').gsub(sku,'')
-        desc = pr.desc
-        price = pr.price
-        oldprice = pr.oldprice
-        quantity = pr.quantity
-				image = pr.image
-				cat = pr.cat.split('---')[0] || '' if pr.cat != nil
-				cat1 = pr.cat.split('---')[1] || '' if pr.cat != nil
-				cat2 = pr.cat.split('---')[2] || '' if pr.cat != nil
-				cat3 = pr.cat.split('---')[3] || '' if pr.cat != nil
-        charact_gab = pr.charact_gab
+      writer << headers
+      @tovs.each do |pr|
+        if pr.title != nil
+          puts "Product создаём файл со статичными данными => pr.id - "+pr.id.to_s
+          fid = pr.id
+          sku = pr.sku
+          title = pr.title.gsub('Eichholtz','').gsub(sku,'')
+          desc = pr.desc
+          price = pr.price
+          oldprice = pr.oldprice
+          quantity = pr.quantity
+          image = pr.image
+          cat = pr.cat.split('---')[0] || '' if pr.cat != nil
+          cat1 = pr.cat.split('---')[1] || '' if pr.cat != nil
+          cat2 = pr.cat.split('---')[2] || '' if pr.cat != nil
+          cat3 = pr.cat.split('---')[3] || '' if pr.cat != nil
+          charact_gab = pr.charact_gab
 
-        shirina = ''
-        glubina = ''
-        visota = ''
-        glubina_sid = ''
-        visota_sid = ''
-        diametr = ''
+          shirina = ''
+          glubina = ''
+          visota = ''
+          glubina_sid = ''
+          visota_sid = ''
+          diametr = ''
 
-        if charact_gab.include?('A.') and charact_gab.include?('Б.')
-          shirina = charact_gab.split('|')[0].gsub('A. ', '') if !charact_gab.split('|')[0].nil? and charact_gab.split('|')[0].include?('A.')
-          glubina = charact_gab.split('|')[1].gsub('Б. ', '') if !charact_gab.split('|')[1].nil? and charact_gab.split('|')[1].include?('Б.')
-          visota = charact_gab.split('|')[2].gsub('С. ', '') if !charact_gab.split('|')[2].nil? and charact_gab.split('|')[2].include?('С.')
-          glubina_sid = charact_gab.split('|')[3].gsub('Д. ', '') if !charact_gab.split('|')[3].nil? and charact_gab.split('|')[3].include?('Д.')
-          visota_sid = charact_gab.split('|')[4].gsub('Е. ', '') if !charact_gab.split('|')[4].nil? and charact_gab.split('|')[4].include?('Е.')
-        end
-        if charact_gab.include?('A.') and charact_gab.include?('B.')
-          shirina = charact_gab.split('|')[0].gsub('A. ', '') if !charact_gab.split('|')[0].nil? and charact_gab.split('|')[0].include?('A.')
-          glubina = charact_gab.split('|')[1].gsub('B. ', '') if !charact_gab.split('|')[1].nil? and charact_gab.split('|')[1].include?('B.')
-          visota = charact_gab.split('|')[2].gsub('C. ', '') if !charact_gab.split('|')[2].nil? and charact_gab.split('|')[2].include?('C.')
-          glubina_sid = charact_gab.split('|')[3].gsub('D. ', '') if !charact_gab.split('|')[3].nil? and charact_gab.split('|')[3].include?('D.')
-          visota_sid = charact_gab.split('|')[4].gsub('E. ', '') if !charact_gab.split('|')[4].nil? and charact_gab.split('|')[4].include?('E.')
-        end
-        if charact_gab.split('x').size == 3 and charact_gab.include?('H.') and !charact_gab.include?('ø')
-          shirina = charact_gab.split('x')[0]
-          glubina = charact_gab.split('x')[1]
-          visota = charact_gab.split('x')[2].gsub('H.', '')
-        end
-        if charact_gab.split('x').size == 3  and charact_gab.include?('высота') and !charact_gab.include?('ø')
-          shirina = charact_gab.split('x')[0]
-          glubina = charact_gab.split('x')[1]
-          visota = charact_gab.split('x')[2].gsub('высота', '')
-        end
-        if charact_gab.split('x').size == 3  and charact_gab.include?('H.') and charact_gab.include?('ø')
-          diametr = charact_gab.split('x')[0]
-          glubina = charact_gab.split('x')[1]
-          visota = charact_gab.split('x')[2].gsub('H.', '')
-        end
-        if charact_gab.split('x').size == 2 and charact_gab.include?('ø')
-          diametr = charact_gab.split('x')[0].gsub('ø ', '')
-          visota = charact_gab.split('x')[1].gsub('H.', '')
-        end
-        if charact_gab.split('x').size == 2 and !charact_gab.include?('ø')
-          shirina = charact_gab.split('x')[0]
-          glubina = charact_gab.split('x')[1]
-        end
-        writer << [fid, sku, title, desc, price, oldprice, quantity, image, cat, cat1, cat2, cat3, shirina, glubina, visota, glubina_sid, visota_sid, diametr ]
-				end
+          if charact_gab.include?('A.') and charact_gab.include?('Б.')
+            shirina = charact_gab.split('|')[0].gsub('A. ', '') if !charact_gab.split('|')[0].nil? and charact_gab.split('|')[0].include?('A.')
+            glubina = charact_gab.split('|')[1].gsub('Б. ', '') if !charact_gab.split('|')[1].nil? and charact_gab.split('|')[1].include?('Б.')
+            visota = charact_gab.split('|')[2].gsub('С. ', '') if !charact_gab.split('|')[2].nil? and charact_gab.split('|')[2].include?('С.')
+            glubina_sid = charact_gab.split('|')[3].gsub('Д. ', '') if !charact_gab.split('|')[3].nil? and charact_gab.split('|')[3].include?('Д.')
+            visota_sid = charact_gab.split('|')[4].gsub('Е. ', '') if !charact_gab.split('|')[4].nil? and charact_gab.split('|')[4].include?('Е.')
+          end
+          if charact_gab.include?('A.') and charact_gab.include?('B.')
+            shirina = charact_gab.split('|')[0].gsub('A. ', '') if !charact_gab.split('|')[0].nil? and charact_gab.split('|')[0].include?('A.')
+            glubina = charact_gab.split('|')[1].gsub('B. ', '') if !charact_gab.split('|')[1].nil? and charact_gab.split('|')[1].include?('B.')
+            visota = charact_gab.split('|')[2].gsub('C. ', '') if !charact_gab.split('|')[2].nil? and charact_gab.split('|')[2].include?('C.')
+            glubina_sid = charact_gab.split('|')[3].gsub('D. ', '') if !charact_gab.split('|')[3].nil? and charact_gab.split('|')[3].include?('D.')
+            visota_sid = charact_gab.split('|')[4].gsub('E. ', '') if !charact_gab.split('|')[4].nil? and charact_gab.split('|')[4].include?('E.')
+          end
+          if charact_gab.split('x').size == 3 and charact_gab.include?('H.') and !charact_gab.include?('ø')
+            shirina = charact_gab.split('x')[0]
+            glubina = charact_gab.split('x')[1]
+            visota = charact_gab.split('x')[2].gsub('H.', '')
+          end
+          if charact_gab.split('x').size == 3  and charact_gab.include?('высота') and !charact_gab.include?('ø')
+            shirina = charact_gab.split('x')[0]
+            glubina = charact_gab.split('x')[1]
+            visota = charact_gab.split('x')[2].gsub('высота', '')
+          end
+          if charact_gab.split('x').size == 3  and charact_gab.include?('H.') and charact_gab.include?('ø')
+            diametr = charact_gab.split('x')[0]
+            glubina = charact_gab.split('x')[1]
+            visota = charact_gab.split('x')[2].gsub('H.', '')
+          end
+          if charact_gab.split('x').size == 2 and charact_gab.include?('ø')
+            diametr = charact_gab.split('x')[0].gsub('ø ', '')
+            visota = charact_gab.split('x')[1].gsub('H.', '')
+          end
+          if charact_gab.split('x').size == 2 and !charact_gab.include?('ø')
+            shirina = charact_gab.split('x')[0]
+            glubina = charact_gab.split('x')[1]
+          end
+          writer << [fid, sku, title, desc, price, oldprice, quantity, image, cat, cat1, cat2, cat3, shirina, glubina, visota, glubina_sid, visota_sid, diametr ]
+          end
 			end
 		end #CSV.open
 
@@ -253,12 +238,7 @@ class Product < ApplicationRecord
 		# Overwrite csv file
 
 		# заполняем параметры по каждому товару в файле
-    if otchet_type == 'selected'
-      new_file = "#{Rails.public_path}"+'/ins_idcollection_selected.csv'
-    else
-		  new_file = "#{Rails.public_path}"+'/ins_idcollection.csv'
-    end
-		CSV.open(new_file, "w") do |csv_out|
+		CSV.open(file_ins, "w") do |csv_out|
 			rows = CSV.read(file, headers: true).collect do |row|
 				row.to_hash
 			end
@@ -287,7 +267,7 @@ class Product < ApplicationRecord
 			end
 		end
 
-    # ProductMailer.ins_file(new_file).deliver_now
+    # ProductMailer.ins_file(file_ins).deliver_now
 
     Turbo::StreamsChannel.broadcast_replace_to(
       # User.find(current_user.id),
@@ -295,7 +275,7 @@ class Product < ApplicationRecord
       target: "modal",
       template: "shared/success_bulk",
       layout: false,
-      locals: {bulk_print: new_file}
+      locals: {bulk_print: file_ins}
     )
 
 	end

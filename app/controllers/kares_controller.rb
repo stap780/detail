@@ -120,7 +120,7 @@ class KaresController < ApplicationController
   end
 
   def import
-    Rails.env.development? ? Kare.import : Kare.delay.import
+    Rails.env.development? ? Kare.import : Kare.import
     flash[:notice] = 'Задача обновления каталога запущена'
     redirect_to kares_path
   end

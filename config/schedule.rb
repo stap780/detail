@@ -48,7 +48,7 @@ every 1.day, :at => '23:00' do
 end
 
 
-every 1.day, :at => '03:10' do
+every 1.day, :at => '04:10' do
   runner "Kare.csv_param"
 end
 

@@ -6,6 +6,7 @@ class KareCollectLinksJob < ApplicationJob
         service = KareCollectLinks.new.call
         if service
             kares = Rails.env.development? ? Kare.order(:id).limit(100) : Kare.all.order(:id)
+            kares.update_all(quantity: 0)
             kares.each_with_index do |kare, index|
                 proxy = Kare::Proxy[index.to_s.split('').last.to_i]
                 KareParsPageJob.perform_later(kare.url, proxy)
