@@ -171,7 +171,7 @@ class Kare < ApplicationRecord
           specialty = pr.specialty
           desc = pr.desc
           price = pr.price
-          quantity = pr.quantity > 0 ? '' : 0
+          quantity = pr.quantity > 0 ? pr.quantity : 0
           quantity_euro = pr.quantity_euro
           image = pr.image
           cat = pr.cat.split('/')[0] || '' if pr.cat != nil
