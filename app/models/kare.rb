@@ -146,33 +146,16 @@ class Kare < ApplicationRecord
   end
 
   def self.csv_param_selected(products, otchet_type)
-    if otchet_type == 'selected'
-      file = "#{Rails.public_path}"+'/kare_selected.csv'
-    else
-      file = "#{Rails.public_path}"+'/kare.csv'
-    end
-    check = File.file?(file)
-    if check.present?
-      File.delete(file)
-    end
+    file = otchet_type == 'selected' ? "#{Rails.public_path}/kare_selected.csv" : "#{Rails.public_path}/kare.csv"
+    check_file = File.file?(file)
+    File.delete(file) if check_file.present?
 
-    if otchet_type == 'selected'
-      file_ins = "#{Rails.public_path}"+'/ins_kare_selected.csv'
-    else
-      file_ins = "#{Rails.public_path}"+'/ins_kare.csv'
-    end
-    check = File.file?(file_ins)
-    if check.present?
-      File.delete(file_ins)
-    end
+    file_ins = otchet_type == 'selected' ? "#{Rails.public_path}/ins_kare_selected.csv" : "#{Rails.public_path}/ins_kare.csv"
+    check_file_ins = File.file?(file_ins)
+    File.delete(file_ins) if check_file_ins.present?
 
     #создаём файл со статичными данными
     @tovs = Kare.where(id: products).order(:id)#.limit(10) #where('title like ?', '%Bellelli B-bip%')
-    if otchet_type == 'selected'
-      file = "#{Rails.root}/public/kare_selected.csv"
-    else
-      file = "#{Rails.root}/public/kare.csv"
-    end
     CSV.open(file, 'w') do |writer|
       headers = ['fid','Артикул', 'Название товара', 'Дополнительное поле: Полное название товара', 'Дополнительное поле: Особенность',
                  'Полное описание', 'Цена продажи', 'Остаток', 'Изображения',
@@ -241,12 +224,7 @@ class Kare < ApplicationRecord
     # Overwrite csv file
 
     # заполняем параметры по каждому товару в файле
-    if otchet_type == 'selected'
-      new_file = "#{Rails.public_path}"+'/ins_kare_selected.csv'
-    else
-      new_file = "#{Rails.public_path}"+'/ins_kare.csv'
-    end
-    CSV.open(new_file, "w") do |csv_out|
+    CSV.open(file_ins, "w") do |csv_out|
       rows = CSV.read(file, headers: true).collect do |row|
         row.to_hash
       end
@@ -254,15 +232,16 @@ class Kare < ApplicationRecord
       csv_out << column_names
       CSV.foreach(file, headers: true ) do |row|
         fid = row[0]
-        # puts fid
+        puts "fid => #{fid.to_s}"
         vel = Kare.find_by_id(fid)
         if vel != nil
 # 				puts vel.id
           if vel.charact.present? # Вид записи должен быть типа - "Длина рамы: 20 --- Ширина рамы: 30"
             vel.charact.split('---').each do |vp|
+              puts "vp => #{vp.to_s}"
               key_value = vp.split(':')
-              key = "Параметр: #{key_value[0].strip}"
-              value = key_value[1].strip
+              key = key_value[0].respond_to?("strip") ? "Параметр: #{key_value[0].strip}" : ''
+              value = key_value[1].respond_to?("strip") ? key_value[1].strip : ''
               row[key] = value
             end
           end
@@ -277,7 +256,7 @@ class Kare < ApplicationRecord
       target: "modal",
       template: "shared/success_bulk",
       layout: false,
-      locals: {bulk_print: new_file}
+      locals: {bulk_print: file_ins}
     )
 
   end

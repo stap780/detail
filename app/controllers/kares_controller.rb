@@ -167,12 +167,13 @@ class KaresController < ApplicationController
     respond_to do |format|
       format.html { redirect_to kares_url, notice: 'Запустили' }
       format.json { head :no_content }
-      flash.now[:success] = 'Запустили'
-      format.turbo_stream do
-        render turbo_stream: [
-          render_turbo_flash
-        ]
-      end
+      format.turbo_stream
+      # flash.now[:success] = 'Запустили'
+      # format.turbo_stream do
+      #   render turbo_stream: [
+      #     render_turbo_flash
+      #   ]
+      # end
     end
   end
 

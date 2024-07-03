@@ -1,0 +1,4 @@
+<%= turbo_stream.update("modal", "")%>
+<%= turbo_stream.update "modal", template: "shared/pending_bulk", layout: false %>
+<%= turbo_stream_action_tag :set_unchecked, targets: '.checkboxes' %>
+<%= turbo_stream_action_tag :open_modal, targets: '.modal' %>

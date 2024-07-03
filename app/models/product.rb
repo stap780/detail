@@ -277,7 +277,11 @@ class Product < ApplicationRecord
       layout: false,
       locals: {bulk_print: file_ins}
     )
-
+    Turbo::StreamsChannel.broadcast_action_to(
+      "bulk_actions",
+      action: "open_modal",
+      targets: ".modal"
+    )
 	end
 
   def self.clean_sm
