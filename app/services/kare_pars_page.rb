@@ -75,7 +75,7 @@ class KareParsPage < ApplicationService
         end
 
         desc = @doc.css('.tabs__body .rs-product__block').map{|line| line.css('.small-text').inner_html if line.css('h4').text.include?('Описание')}
-        material = @doc.css('.rs-product__characteristics_item').map{|line| 'Материал:'+line.css('.small-text').text.strip if line.css('h6').text.include?('Материал:')}.reject(&:blank?)
+        material = @doc.css('.rs-product__characteristics_item').map{|line| 'Материал:'+line.css('.small-text').text.gsub(':','-').strip if line.css('h6').text.include?('Материал:')}.reject(&:blank?)
         # sizes = @doc.css('.rs-product__characteristics_item').map{|line| line.css('ul li') if line.css('h6').text.include?('Упаковка и габариты:')}.reject(&:blank?).flatten
         # sizes.map{|s| s.text}.join('---')
         sizes = @doc.css('.rs-product__characteristics_item ul li').map{|line| line.inner_html.remove(':').gsub('<span>',':').remove('</span>').squish if line.inner_html && line.inner_html.respond_to?("squish")}
