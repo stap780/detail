@@ -52,3 +52,6 @@ every 1.day, :at => '04:10' do
   runner "Kare.csv_param"
 end
 
+every 1.day, :at => '06:00' do
+  rake "file:create_log_zip_every_day"
+end

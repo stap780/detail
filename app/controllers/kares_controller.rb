@@ -6,7 +6,7 @@ class KaresController < ApplicationController
   def index
     @search = Kare.ransack(params[:q])
     @search.sorts = 'id asc' if @search.sorts.empty?
-    @kares = @search.result.paginate(page: params[:page], per_page: 100)
+    @kares = @search.result.paginate(page: params[:page], per_page: 50)
     # if params['otchet_type'] == 'selected'
     #   Product.csv_param_selected( params['selected_products'], params['otchet_type'])
     #   new_file = "#{Rails.public_path}"+'/kare_selected.csv'

@@ -170,7 +170,7 @@ class Kare < ApplicationRecord
           full_title = pr.full_title
           specialty = pr.specialty
           desc = pr.desc
-          price = pr.price
+          price = pr.price.to_i - (pr.price.to_i * 1 / 100)
           quantity = pr.quantity > 0 ? pr.quantity : 0
           quantity_euro = pr.quantity_euro
           image = pr.image
