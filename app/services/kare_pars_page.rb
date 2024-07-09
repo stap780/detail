@@ -49,6 +49,7 @@ class KareParsPage < ApplicationService
         end
         response = conn.get #('/posts.json')
         # response = conn.get('/api/v1/home/index')
+        puts response
         response.headers
         puts response.status
         response.body
