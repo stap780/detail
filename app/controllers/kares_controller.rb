@@ -1,7 +1,7 @@
 class KaresController < ApplicationController
 
   before_action :authenticate_user!
-  before_action :set_kare, only: [:show, :edit, :update, :destroy]
+  before_action :set_kare, only: [:show, :edit, :update, :destroy, :pars_one]
 
   def index
     @search = Kare.ransack(params[:q])
@@ -156,6 +156,30 @@ class KaresController < ApplicationController
     #     end
     #   end
     # end
+  end
+
+  def pars_one
+    if @kare.url.present?
+      proxy = Kare::Proxy[1]
+      KareParsPage.new(@kare.url, proxy).call
+      respond_to do |format|
+        flash.now[:success] = 'Обновили информацию'
+        format.turbo_stream do
+          render turbo_stream: [
+            render_turbo_flash
+          ]
+        end
+      end
+    else
+      respond_to do |format|
+        flash.now[:success] = 'нет ссылки в в позиции'
+        format.turbo_stream do
+          render turbo_stream: [
+            render_turbo_flash
+          ]
+        end
+      end
+    end
   end
 
   def csv_param

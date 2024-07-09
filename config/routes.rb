@@ -14,6 +14,9 @@ Rails.application.routes.draw do
     end
   end
   resources :kares do
+    member do
+      get :pars_one
+    end
     collection do
       get :pars
       get :import

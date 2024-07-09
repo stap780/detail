@@ -9,15 +9,6 @@ module ApplicationHelper
         end
     end
     
-    def bs_will_paginate(collection = nil, options = {})
-        options, collection = collection, nil if collection.is_a? Hash
-        options = options.merge(
-            renderer: BootstrapPaginateRenderer, # ApplicationHelper::LinkRenderer,
-            previous_label: "&laquo;",
-            next_label: "&raquo;"
-        )
-        will_paginate(collection) #will_paginate(collection, options)
-    end
 
     def prepend_flash
         turbo_stream.prepend "our_flash", partial: "shared/flash"
