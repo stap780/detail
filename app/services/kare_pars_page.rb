@@ -37,8 +37,8 @@ class KareParsPage < ApplicationService
     def get_doc
         puts "start get_doc"
         proxy_ip = @proxy
-        proxy_username = 'quwmffzs'
-        proxy_password = 'r41ybhmuyzvg'
+        proxy_username = Rails.application.credentials.proxy_username
+        proxy_password = Rails.application.credentials.proxy_password
 
         conn = Faraday.new( url: @link,
                             :ssl=>{verify:false},
