@@ -37,7 +37,9 @@ class Kare < ApplicationRecord
   def self.ransackable_associations(auth_object = nil)
     []
   end
-
+  def self.ransackable_scopes(auth_object = nil)
+		[:lt_1, :gt_0]
+	end
   def self.lt_1
     Kare.where('quantity = 0')
   end
