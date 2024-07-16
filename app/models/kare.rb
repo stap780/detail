@@ -37,7 +37,15 @@ class Kare < ApplicationRecord
   def self.ransackable_associations(auth_object = nil)
     []
   end
-  
+
+  def self.lt_1
+    Kare.where('quantity = 0')
+  end
+
+  def self.gt_0
+    Kare.kare_qt_not_null
+  end
+
   def self.pars
     service = KareCollectLinks.new.call
     if service

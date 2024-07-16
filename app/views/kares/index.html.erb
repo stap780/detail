@@ -17,7 +17,18 @@
       <%= f.search_field :sku_or_title_cont, placeholder: 'Артикул, Название', class: "form-control"%>
       <%= f.select :status_eq, Kare::STATUS, {include_blank: false, prompt: 'Статус'} , class: "form-select" , style: "max-width: 150px;" %>
       <%= f.collection_select :cat_cont, Kare.kare_cat, "cat", "cat", {include_blank: false, prompt: 'Категория'} , class: "form-select" , style: "max-width: 150px;" %>
-      <%= f.select :quantity_in, [['= 0', 0],['> 0', 1..100]], { include_blank: false, prompt: 'Кол-во'}, class: "form-select"  %>
+      <%# f.select :quantity_in, [['= 0', 0],['> 0', 1..100]], { include_blank: false, prompt: 'Кол-во'}, class: "form-select"  %>
+      <div class="btn-group" role="group" aria-label="">
+        <div class="btn-group" role="group">
+          <button id="dropdownId" type="button" class="form-control dropdown-toggle" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">К-во</button>
+          <div class="dropdown-menu checkboxes2" aria-labelledby="dropdownId">
+            <div class="p-1"><%= f.label :lt_1 do %><%= f.check_box :lt_1 %> = 0<% end %></div>
+            <div class="p-1"><%= f.label :gt_0 do %><%= f.check_box :gt_0 %> > 0 <% end %></div>
+          </div>
+        </div>
+      </div>
+
+
       <%= button_tag(type: 'submit', :class => "btn btn-info") do %><%= search_icon%><% end %>
       <%= link_to arrow_clockwise_icon, kares_path, class: 'btn btn-outline-dark' %>
       <%# link_to list_icon, kares_path(params.permit(:kares).merge(selected_kares: @kares.pluck(:id), otchet_type: 'selected')), title: "Создать файл с выбранными товарами", class: 'btn btn-outline-dark'%>
