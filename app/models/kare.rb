@@ -27,7 +27,8 @@ class Kare < ApplicationRecord
       6 => "185.39.8.85:5742",
       7 => "216.173.99.104:6446",
       8 => "217.69.126.218:6088",
-      9 => "45.43.68.115:5755" }
+      9 => "45.43.68.115:5755" 
+    }
 
 
   def self.ransackable_attributes(auth_object = nil)
