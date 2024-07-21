@@ -69,8 +69,8 @@ class KareParsPage < ApplicationService
     def collect_data
         puts "start collect_data"
         title = @doc.css('.rs-product__title h4').text
-        if @doc.css('.rs-product__price_new').present?
-            price = @doc.css('.rs-product__price_new').text.split('').reject(&:blank?).join.remove('₽')
+        if @doc.css('.rs-product__price_old').present?
+            price = @doc.css('.rs-product__price_old').text.split('').reject(&:blank?).join.remove('₽')
         else
             price = @doc.css('.rs-product__price_actual').text.split('').reject(&:blank?).join.remove('₽')
         end
