@@ -252,7 +252,7 @@ class Kare < ApplicationRecord
               puts "vp => #{vp.to_s}"
               key_value = vp.split(':')
               key = key_value[0].respond_to?("strip") ? "Параметр: #{key_value[0].strip}" : ''
-              value = key_value[1].respond_to?("strip") ? key_value[1].strip : ''
+              value = key_value[1].respond_to?("strip") ? key_value[1].strip.gsub('см','').gsub('кг','').gsub('см<sup>3</sup>','') : ''
               row[key] = value
             end
           end
