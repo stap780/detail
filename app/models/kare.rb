@@ -161,7 +161,7 @@ class Kare < ApplicationRecord
     check_file = File.file?(file)
     File.delete(file) if check_file.present?
 
-    file_ins = otchet_type == 'selected' ? "#{Rails.public_path}/ins_kare_selected.csv" : "#{Rails.public_path}/ins_kare.csv"
+    file_ins = otchet_type == 'selected' ? "#{Rails.public_path}/ins_kare_selected.csv" : "#{Rails.public_path}/ins_kare_new.csv"
     check_file_ins = File.file?(file_ins)
     File.delete(file_ins) if check_file_ins.present?
 
