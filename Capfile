@@ -14,3 +14,8 @@ require "capistrano/puma"
 install_plugin Capistrano::Puma
 install_plugin Capistrano::Puma::Systemd
 Dir.glob("lib/capistrano/tasks/*.rake").each { |r| import r }
+
+# Capfile
+require 'capistrano/sidekiq'
+install_plugin Capistrano::Sidekiq  # Default sidekiq tasks
+install_plugin Capistrano::Sidekiq::Systemd  # Systemd integration
