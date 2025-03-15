@@ -45,7 +45,6 @@ namespace :deploy do
       end
     end
   end
-  end
 
   desc 'Initial Deploy'
   task :initial do
