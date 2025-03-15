@@ -18,7 +18,7 @@ class Kare < ApplicationRecord
 
   STATUS = ["new","process","finish","error"]
   Proxy = {
-      0 => "104.238.36.162:6169",
+      0 => "104.250.207.225:6623",
       1 => "107.173.137.229:6483",
       2 => "168.199.225.165:6933",
       3 => "171.22.248.119:6011",
@@ -26,23 +26,25 @@ class Kare < ApplicationRecord
       5 => "45.43.184.136:5810",
       6 => "185.39.8.85:5742",
       7 => "216.173.99.104:6446",
-      8 => "217.69.126.218:6088",
+      8 => "64.137.65.42:6721",
       9 => "45.43.68.115:5755" 
     }
 
-
   def self.ransackable_attributes(auth_object = nil)
-      Kare.attribute_names
+    Kare.attribute_names
   end
-  def self.ransackable_associations(auth_object = nil)
-    []
-  end
-  def self.ransackable_scopes(auth_object = nil)
-		[:lt_1, :gt_0]
-	end
-  def self.lt_1
-    Kare.where('quantity = 0')
-  end
+
+def self.ransackable_associations(auth_object = nil)
+  []
+end
+
+def self.ransackable_scopes(auth_object = nil)
+  [:lt_1, :gt_0]
+end
+
+def self.lt_1
+  Kare.where('quantity = 0')
+end
 
   def self.gt_0
     Kare.kare_qt_not_null
@@ -51,11 +53,12 @@ class Kare < ApplicationRecord
   def self.pars
     service = KareCollectLinks.new.call
     if service
-      Kare.order(:id).limit(100).each_with_index do |kare, index|
+      # Kare.order(:id).limit(100).each_with_index do |kare, index| # for test
+      Kare.order(:id).each_with_index do |kare, index|
         puts "index => #{index}"
         proxy = Kare::Proxy[index.to_s.split('').last.to_i]
-        # KareParsPageJob.perform_later(kare.url, proxy)
-        KareParsPage.new(kare.url, proxy).call
+        KareParsPageJob.perform_later(kare.url, proxy)
+        # KareParsPage.new(kare.url, proxy).call  # for test
       end
     end
   end
@@ -243,7 +246,7 @@ class Kare < ApplicationRecord
       csv_out << column_names
       CSV.foreach(file, headers: true ) do |row|
         fid = row[0]
-        puts "fid => #{fid.to_s}"
+        puts "fid => #{fid}.to_s"
         vel = Kare.find_by_id(fid)
         if vel != nil
 # 				puts vel.id

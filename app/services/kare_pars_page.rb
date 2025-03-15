@@ -19,6 +19,7 @@ class KareParsPage < ApplicationService
         get_doc
         puts "end get_doc"
         return if !check_product_page
+
         puts "end check_product_page"
         remove_double_info
         puts "end remove_double_info"

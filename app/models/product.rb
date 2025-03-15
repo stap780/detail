@@ -22,89 +22,101 @@ class Product < ApplicationRecord
   end
   
   def self.import
-    puts 'start import '+Time.now.in_time_zone('Moscow').to_s
+    puts "start import #{Time.now.in_time_zone('Moscow')}"
     Product.update_all(quantity: 0)
-    url = "https://idcollection.ru/catalogue/producers/eichholtz"
-    doc = Nokogiri::HTML(URI.open(url, :read_timeout => 50))
-		paginate_number = doc.css(".pagenavigation__nav.pagenavigation__nav--next")[0]['data-max-page']
-    if Rails.env.development?
-      count = 4
-    else
-      count = paginate_number.presence || '1'
-    end
+    url = 'https://idcollection.ru/catalogue/producers/eichholtz'
+    uri = URI.parse(url)
+    doc = Nokogiri::HTML(Net::HTTP.get(uri), nil, 'UTF-8')
+    paginate_number = doc.css('.pagenavigation__nav.pagenavigation__nav--next')[0]['data-max-page']
+
+    count = Rails.env.development? ? 4 : paginate_number.presence || '1'
+
     page_array = Array(1..count.to_i)
 		page_array.each do |page|
       puts 'page '+page.to_s
       cat_l = page == 1 ? url : url+"?PAGEN_2="+page.to_s
-      cat_doc = Nokogiri::HTML(open(cat_l, :read_timeout => 50))
-        product_urls = cat_doc.css('.catalog-section__title-link')
-        product_urls.each do |purl|
-          pr_url = 'https://idcollection.ru'+purl['href']
-          # pr_doc = Nokogiri::HTML(open(pr_url, :read_timeout => 50))
-          RestClient::Request.execute( url: pr_url, method: :get, verify_ssl: false ) { |response, request, result, &block|
-            case response.code
-      			when 200
-              pr_doc = Nokogiri::HTML(response)
-              puts pr_url
-          title= pr_doc.css('h1').text
-          # puts title
-          desc = pr_doc.css('.catalog-element-description__text').text.strip
-          cat_array = pr_doc.css('.breadcrumbs__element--title').map{|b| b.text.split(' ').join(' ') }.reject{|b| b == 'Каталог' || b == 'Категория' }
-          cat = cat_array.join('---')
+      uri = URI.parse(cat_l)
+      cat_doc = Nokogiri::HTML(Net::HTTP.get(uri), nil, 'UTF-8')
+      product_urls = cat_doc.css('.catalog-section__title-link')
+      product_urls.each do |purl|
+        pr_url = "https://idcollection.ru#{purl['href']}"
+        RestClient::Request.execute( url: pr_url, method: :get, verify_ssl: false ) { |response, request, result, &block|
+          case response.code
+          when 200
+            pr_doc = Nokogiri::HTML(response)
+            puts pr_url
+            title= pr_doc.css('h1').text.squish if pr_doc.css('h1').text.respond_to?('squish')
+            # puts title
+            desc = pr_doc.css('.catalog-element-description__text').text.strip
+            cat_array = pr_doc.css('.breadcrumbs__element--title').map{|b| b.text.split(' ').join(' ') }.reject{|b| b == 'Каталог' || b == 'Категория' }
+            cat = cat_array.join('---')
 
-          sku_array = []
-          charact_gab_array = []
-          characts_array = []
-          pr_doc.css('.element-popups__content .first .content-item__element').each do |file_charact|
-            key = file_charact.inner_html.split('<span>').first.strip
-            value = file_charact.text.remove("#{key}").squish if file_charact.text.remove("#{key}").respond_to?("squish")
-            sku_array.push(value) if key == 'Артикул'
-            charact_gab_array.push(value) if key == 'Габариты'
-            characts_array.push(key+' : '+value.to_s) if key != 'Артикул' and key != 'Габариты'
-          end
-          charact = characts_array.join('---')
-          sku = sku_array.join()
-          charact_gab = charact_gab_array.join().gsub('cm', '').gsub('см', '')
+            sku_array = []
+            charact_gab_array = []
+            characts_array = []
+            pr_doc.css('.element-popups__content .first .content-item__element').each do |file_charact|
+              key = file_charact.inner_html.split('<span>').first.strip
+              value = file_charact.text.remove("#{key}").squish if file_charact.text.remove("#{key}").respond_to?('squish')
+              sku_array.push(value) if key == 'Артикул' || key == 'Артикул:'
+              charact_gab_array.push(value) if key == 'Габариты' || key == 'Габариты:'
+              characts_array.push(key+' : '+value.to_s) if key != 'Артикул' && key != 'Габариты' && key != 'Артикул:' && key != 'Габариты:'
+            end
+            charact = characts_array.join('---')
+            sku = sku_array.join()
+            charact_gab = charact_gab_array.join().gsub('cm', '').gsub('см', '')
 
-          oldprice_price_node = pr_doc.css('.element-info__default-price .discount')
-          oldprice = oldprice_price_node.present? ? oldprice_price_node.text.strip.gsub(' ','').gsub('руб.','').gsub('.0','') : 0
-          price_node = pr_doc.css('.element-info__default-price .price')
-          price = price_node.present? ? price_node.text.strip.gsub(' ','').gsub('руб.','').gsub('.0','') : 0
-          quantity_node = pr_doc.css('.element-info__availability-have')
-          quantity = quantity_node.present? ? quantity_node.text.split(':').last.strip.gsub(' шт.','') : 0
-          picts = []
-    			pict_main = pr_doc.css('.element-slider__image').size > 0 ? pr_doc.css('.element-slider__image')[0]['src'] : ''
-    			picts.push(pict_main)
-          thumb_node = pr_doc.css('.element-slider__nav-image img')
-    			pict_thumbs = thumb_node.present? ? thumb_node.map{ |p| p["src"] } : [""]
-    			picts |= pict_thumbs
-          image = picts.map{ |a| "https://idcollection.ru"+a.gsub("197_140_1","800_800_1") if !a.include?('3dbutton')}.join(' ')
+            oldprice_price_node = pr_doc.css('.element-info__default-price .discount')
+            oldprice = oldprice_price_node.present? ? oldprice_price_node.text.strip.gsub(' ','').gsub('руб.','').gsub('.0','') : 0
+            price_node = pr_doc.css('.element-info__default-price .price')
+            price = price_node.present? ? price_node.text.strip.gsub(' ','').gsub('руб.','').gsub('.0','') : 0
+            quantity_node = pr_doc.css('.element-info__availability-have')
+            quantity = quantity_node.present? ? quantity_node.text.split(':').last.strip.gsub(' шт.','') : 0
+            picts = []
+            pict_main = pr_doc.css('.element-slider__image').size.positive? ? pr_doc.css('.element-slider__image')[0]['src'] : ''
+            picts.push(pict_main)
+            thumb_node = pr_doc.css('.element-slider__nav-image img')
+            pict_thumbs = thumb_node.present? ? thumb_node.map{ |p| p['src'] } : ['']
+            picts |= pict_thumbs
+            image = picts.map{ |a| "https://idcollection.ru"+a.gsub("197_140_1","800_800_1") if !a.include?('3dbutton')}.join(' ')
 
-          product = Product.find_by_sku(sku)
-          if product.present?
-            product.update(title: title, desc: desc, cat: cat, charact: charact, charact_gab: charact_gab, oldprice: oldprice, price: price, quantity: quantity, image: image, url: pr_url, status: 'finish')
+            data = {
+              sku: sku,
+              title: title,
+              desc: desc,
+              cat: cat,
+              charact: charact,
+              charact_gab: charact_gab,
+              oldprice: oldprice,
+              price: price,
+              quantity: quantity,
+              image: image,
+              url: pr_url,
+              status: 'finish'
+            }
+            puts "data => #{data}"
+            product = Product.find_by_sku(data[:sku])
+            if product.present?
+              product.update!(data.except!(:sku))
+            else
+              Product.create!(data)
+            end
+          when 404
+            puts 'error 404'
+          when 503
+            puts 'error 503 break'
+            break
           else
-            Product.create(sku: sku, title: title, desc: desc, cat: cat, charact: charact, charact_gab: charact_gab, oldprice: oldprice, price: price, quantity: quantity, image: image, url: pr_url, status: 'finish')
+            response.return!(&block)
           end
-        when 404
-  	# 			puts response
-  				puts 'error 404'
-        when 503
-  	# 			puts response
-  				puts 'error 503 break'
-          break
-  			else
-  				response.return!(&block)
-  			end
-  			}
+          }
 
-        end
+      end
     end
 
-    productcount = Product.qt_not_null_size ||= "0"
-		productall = Product.all_size ||= "0"
+    productcount = Product.qt_not_null_size.to_i
+    productall = Product.all_size.to_i
     # ProductMailer.downloadproduct_product(productcount, productall).deliver_now
-    puts 'end import '+Time.now.in_time_zone('Moscow').to_s
+    puts "end import #{Time.now.in_time_zone('Moscow')} // productcount: #{productcount} // productall: #{productall}"
   end
 
   def self.csv_param

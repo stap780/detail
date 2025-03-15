@@ -16,7 +16,7 @@ development:
   adapter:  postgresql
   host:     localhost
   encoding: unicode
-  database: realy_detail_development
+  database: detail_development
   pool:     5
 #  username: administrator
 #  password:
