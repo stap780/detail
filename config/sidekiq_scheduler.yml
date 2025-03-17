@@ -1,0 +1,25 @@
+log_files:
+  cron: "00 06 * * *"
+  class: LogFilesScheduler
+  queue: default
+  description: "This job logs files every day at 06:00"
+kare_pars:
+  cron: "00 23 * * *"
+  class: KareParsScheduler
+  queue: default
+  description: "This job schedules kare pars every day at 23:00"
+kare_csv_file:
+  cron: "10 04 * * *"
+  class: KareCsvFileScheduler
+  queue: default
+  description: "This job schedules kare csv file every day at 04:10"
+idc_pars:
+  cron: "00 16 * * *"
+  class: IdcParsScheduler
+  queue: default
+  description: "This job schedules idc pars every day at 16:00"
+idc_csv_file:
+  cron: "00 19 * * *"
+  class: IdcCsvFileScheduler
+  queue: default
+  description: "This job schedules idc csv file every day at 19:00"

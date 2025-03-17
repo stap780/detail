@@ -2,9 +2,9 @@ class Kare < ApplicationRecord
   require 'net/ftp'
   require 'open-uri'
   before_save :normalize_data_white_space
-  after_create_commit { broadcast_prepend_to "kares" }
-  after_update_commit { broadcast_replace_to "kares" }
-  after_destroy_commit { broadcast_remove_to "kares" }
+  after_create_commit { broadcast_prepend_to 'kares' }
+  after_update_commit { broadcast_replace_to 'kares' }
+  after_destroy_commit { broadcast_remove_to 'kares' }
 
 
   scope :all_size, -> { order(:id).size }
@@ -17,18 +17,6 @@ class Kare < ApplicationRecord
   validates :url, uniqueness: true
 
   STATUS = ["new","process","finish","error"]
-  Proxy = {
-      0 => "104.250.207.225:6623",
-      1 => "107.173.137.229:6483",
-      2 => "168.199.225.165:6933",
-      3 => "171.22.248.119:6011",
-      4 => "185.48.52.133:5725",
-      5 => "45.43.184.136:5810",
-      6 => "185.39.8.85:5742",
-      7 => "216.173.99.104:6446",
-      8 => "64.137.65.42:6721",
-      9 => "45.43.68.115:5755" 
-    }
 
   def self.ransackable_attributes(auth_object = nil)
     Kare.attribute_names
@@ -53,105 +41,10 @@ end
   def self.pars
     service = KareCollectLinks.new.call
     if service
-      # Kare.order(:id).limit(100).each_with_index do |kare, index| # for test
-      Kare.order(:id).each_with_index do |kare, index|
-        puts "index => #{index}"
-        proxy = Kare::Proxy[index.to_s.split('').last.to_i]
-        KareParsPageJob.perform_later(kare.url, proxy)
-        # KareParsPage.new(kare.url, proxy).call  # for test
+      Kare.order(:id).each do |kare|
+        KareParsPageJob.perform_later(kare.url)
       end
     end
-  end
-
-  def self.import
-    puts "====>>>> START Import KARE === #{Time.now}"
-
-    file_path = "#{Rails.root}/public/partners.xml"
-
-    check = File.file?(file_path)
-    if check.present?
-      File.delete(file_path)
-    end
-
-    begin
-      ftp = Net::FTP.new
-      ftp.connect("kare-center.ru",21)
-      ftp.login("partner03","MVAXkQ8j")
-      ftp.passive = true
-      ftp.getbinaryfile("partners.xml", "public/partners.xml")
-      ftp.close
-    rescue
-      return
-    end
-    file = File.open(file_path)
-
-    doc = Nokogiri::XML(file)
-
-    doc_products = doc.xpath("//offer")
-
-    return if doc_products.count == 0
-
-    Kare.find_each(batch_size: 1000) do |kare|
-      kare.update(quantity: 0)
-    end
-
-    categories = {}
-    doc_categories = doc.xpath("//category")
-    parent_category = ''
-
-    doc_categories.each do |c|
-      next if c.text == 'Каталог'
-      if c["parentId"] == '11'
-        parent_category = c.text
-        next
-      end
-      categories[c["id"]] = "Бренды/KARE/#{parent_category}/#{c.text}"
-    end
-
-    doc_products.each do |doc_product|
-
-      charact = doc_product.xpath("param").map do |doc_param|
-        name = doc_param['name'].gsub(/, куб.м|, см/, '')
-        next if ['Количество для заказа', 'Количество в наличии в России', 'Артикул', 'Цвета', 'Материалы', 'Описание', 'Особенность'].include? name
-        values_param = doc_param.text.gsub(', ', ',').split(',').join('##')
-        name = 'Материал' if name == 'Оригинальные материалы'
-        name = 'Цвет' if name == 'Оригинальные цвета'
-        "#{name}: #{values_param}"
-      end.reject(&:nil?).join(' --- ')
-
-      if doc_product.xpath("oldprice").present?
-        number = doc_product.xpath("oldprice").text.to_f
-        price = number - number/100
-      else
-        number = doc_product.xpath("price").text.to_f
-        price = number - number/100
-      end
-
-      data = {
-        sku: "KARE__#{doc_product.at("param[name='Артикул']").text}",
-        title: doc_product.xpath("name").text.split(/\s[0-9]+,?[0-9]?\*{1}[0-9]+,?[0-9]?\*{1}[0-9]+,?[0-9]?/).first.gsub(/&quot;/, '"'),
-        full_title: doc_product.xpath("name").text.gsub(/&quot;/, '"'),
-        desc: doc_product.at("param[name='Описание']")&.text,
-        cat: categories[doc_product.xpath("categoryId").text.to_s],
-        specialty: doc_product.at("param[name='Особенность']")&.text,
-        charact: charact,
-        price: price.floor,
-        quantity_euro: doc_product.at("param[name='Количество для заказа']").text.to_i,
-        quantity: doc_product.at("param[name='Количество в наличии в России']").text.to_i,
-        image: doc_product.xpath("picture").map(&:text).join(' '),
-        url: doc_product.xpath("url").text,
-        brand: doc_product.xpath("vendor").text
-      }
-
-      product = Kare.find_by_sku(data[:sku])
-
-      if product.present?
-        product.update(data)
-      else
-        Kare.create(data)
-      end
-    end
-    puts "====>>>> FINISH Import KARE === #{Time.now}"
   end
 
   def self.csv_param

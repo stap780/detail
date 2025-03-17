@@ -119,49 +119,24 @@ class KaresController < ApplicationController
     end
   end
 
-  def import
-    Rails.env.development? ? Kare.import : Kare.import
-    flash[:notice] = 'Задача обновления каталога запущена'
-    redirect_to kares_path
-  end
 
   def pars
-    # service = KareCollectLinks.new.call
-    # if service
-    #   Kare.order(:id).limit(100).each_with_index do |kare, index|
-    #     proxy = Kare::Proxy[index.to_s.split('').last.to_i]
-    #     KareParsPageJob.perform_later(kare.url, proxy)
-    #     # KareParsPage.new(kare.url, proxy).call
-    #   end
-      KareCollectLinksJob.perform_later
-      respond_to do |format|
-        format.html { redirect_to kares_url, notice: 'Запустили' }
-        format.json { head :no_content }
-        flash.now[:success] = 'Запустили'
-        format.turbo_stream do
-          render turbo_stream: [
-            render_turbo_flash
-          ]
-        end
+    KareCollectLinksJob.perform_later
+    respond_to do |format|
+      format.html { redirect_to kares_url, notice: 'Запустили' }
+      format.json { head :no_content }
+      flash.now[:success] = 'Запустили'
+      format.turbo_stream do
+        render turbo_stream: [
+          render_turbo_flash
+        ]
       end
-    # else
-    #   respond_to do |format|
-    #     format.html { redirect_to kares_url, notice: 'Не запустили. Не собрали ссылки на товары' }
-    #     format.json { head :no_content }
-    #     flash.now[:success] = 'Запустили'
-    #     format.turbo_stream do
-    #       render turbo_stream: [
-    #         render_turbo_flash
-    #       ]
-    #     end
-    #   end
-    # end
+    end
   end
 
   def pars_one
     if @kare.url.present?
-      proxy = Kare::Proxy[1]
-      KareParsPage.new(@kare.url, proxy).call
+      KareParsPage.new(@kare.url).call
       respond_to do |format|
         flash.now[:success] = 'Обновили информацию'
         format.turbo_stream do

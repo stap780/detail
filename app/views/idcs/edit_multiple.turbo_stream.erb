@@ -1,14 +1,14 @@
-<%= turbo_stream.update "modal", '' %>
-<%= turbo_stream.update "modal" do %>
+<%= turbo_stream.update "modal-body", '' %>
+<%= turbo_stream.update "modal-body" do %>
   <div class="form-group mt-0">
-    Выбрано: <%= @products.count %> шт
+    Выбрано: <%= @idcs.count %> шт
   </div>
-  <%= form_tag update_multiple_products_path, method: :put , id: 'form_edit_multi' do %>
-  <%@products.each do |pr|%>
-    <%= hidden_field_tag "product_ids[]", pr.id , id: "product_id_"+pr.id.to_s%>
+  <%= form_tag update_multiple_idcs_path, method: :put , id: 'form_edit_multi' do %>
+  <%@idcs.each do |pr|%>
+    <%= hidden_field_tag "idc_ids[]", pr.id , id: "idc_id_"+pr.id.to_s%>
   <% end %>
 
-  <%= fields_for :product_attr do |f| %>
+  <%= fields_for :idc_attr do |f| %>
   <div class="form-group">
     <%= f.label :oldprice, 'Старая цена' %><br />
     <%= f.number_field :oldprice,  { min: 1, class: "form-control"} %>

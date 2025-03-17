@@ -8,7 +8,6 @@
     <button id="dropdownId" type="button" class="form-control dropdown-toggle" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">Действия</button>
     <div class="dropdown-menu checkboxes1" aria-labelledby="dropdownId">
       <%= link_to 'Спарсить сайт', pars_kares_path, class: 'dropdown-item', data: { turbo: true, turbo_stream: true }%>
-      <%= link_to 'Обновить каталог OLD', import_kares_path, class: 'dropdown-item'%>
       <%= link_to 'Сформировать файл', csv_param_kares_path, class: 'dropdown-item', data: { turbo: true, turbo_stream: true }%>
     </div>
   </div>
@@ -35,7 +34,7 @@
     </div>
   <% end %>
   <%= form_with url: bulk_export_kares_path, method: :post, id: :bulk_form, class: "col-1 m-0 p-0" do |f| %>
-    <%= f.button type: :submit, class: "btn btn-outline-secondary" do %><%= list_icon%><% end%>
+    <%= f.button type: :submit, class: "btn btn-outline-secondary", title: 'экспорт' do %><%= list_icon%><% end%>
     <%= f.button type: :submit, class: "btn btn-outline-secondary", formaction: delete_selected_kares_path, method: :post, data: { turbo: true, turbo_confirm: "Are you sure?" } do %><%= trash_icon%><% end%>
     <%# f.button type: :submit, class: "", id: '', formaction: admin_products_edit_products_taxon_path, formmethod: "get" do %><%# end%>
   <% end %>

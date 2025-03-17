@@ -1,0 +1,40 @@
+
+<%= turbo_frame_tag idc, class: "py-2 px-0 justify-content-between align-items-center py-2 border-top-1 border-start-0 border-end-0 row", data: { }  do %>
+    <%= tag.div('', class: "col-1 pe-0") do %>
+        <%=tag.div class: 'form-check' do %>
+            <%= check_box_tag "idc_ids[]", idc.id, false, {checked: false,multiple: true, class: 'checkboxes form-check-input', data: { 'selectall_target': 'checkbox', action: "change->selectall#toggleParent"}, form: :bulk_form } %>
+            <%=tag.label class: 'form-check-label' do %>
+                <%= link_to idc.id, edit_idc_path(idc), class: "text-decoration-none", data: {turbo_frame: "_top"} %>
+            <% end %>
+        <% end %>
+    <% end %>
+    <%= tag.div(idc.status, class: "col-1 ps-0")%>
+    <%= tag.div class: "col-4 d-flex flex-column" do %>
+        <%= tag.div("Title: #{idc.title}", class: "")%>
+        <%= tag.div("Sku: #{idc.sku}", class: "")%>
+        <%= tag.div("Cat: #{idc.cat}", class: "")%>
+    <% end %>
+    <%= tag.div(idc.price, class: "col-1")%>
+    <%= tag.div(idc.quantity, class: "col-1")%>
+    <%= tag.div class: "col-2" do %>
+        <span class="row mx-0">
+            <% idc.image.split(' ').each do |pict| %>
+            <div class="w-25 px-0"><img class="img-thumbnail" src="<%= pict %>"></div>
+            <% end if idc.image.present? %>
+        </span>
+    <% end %>
+    <div class= "col d-flex justify-content-end gap-2 align-items-center" id="idc-buttons-<%=idc.id%>">
+      <% if idc.status == "Process" %>
+        <%= render 'shared/running'%>
+      <% else %>
+            
+        <%# link_to arrow_right_icon, run_idc_variants_path(idc, variant_ids: idc.variants.pluck(:id) ), 
+                      title: "Экспортировать картинки", data: { "turbo-method": :post, 'turbo-confirm': 'Экспортировать картинки в магазин?' }, 
+                      class:"btn btn-sm btn-outline-secondary" if !idc.new_record? && idc.variants.present? %>
+        <%= link_to play_icon, pars_one_idc_path(idc), data: { turbo_method: :get, turbo_stream: true }, class: "btn" %>
+        <%= link_to eye_fill_icon, idc.url, class: "", target: "_blank" %>
+        <%= link_to trash_icon, idc, data: { "turbo-method": :delete, 'turbo-confirm': 'Are you sure?' }, class:"" %>
+
+      <% end %>
+    </div>
+<% end %>

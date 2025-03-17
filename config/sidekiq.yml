@@ -4,8 +4,9 @@
     - default
     - kare_pars_page
     - kare_collect_links
-    - product_import
-    - product_csv_param
+    - idc_import
+    - idc_pars_url
+    - idc_csv_param
 :scheduler:
   :dynamic: true
 

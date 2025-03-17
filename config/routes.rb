@@ -1,9 +1,13 @@
 Rails.application.routes.draw do
   require 'sidekiq/web'
+  require 'sidekiq-scheduler/web'
 
   mount Sidekiq::Web => '/sidekiq'
 
-  resources :products do
+  resources :idcs do
+    member do
+      get :pars_one
+    end
     collection do
       get :edit_multiple
       put :update_multiple
@@ -19,7 +23,6 @@ Rails.application.routes.draw do
     end
     collection do
       get :pars
-      get :import
       get :csv_param
       post :delete_selected
       post :bulk_export

@@ -1,12 +1,12 @@
 class KareCollectLinks < ApplicationService
-    require 'open-uri'
-    
-    attr_reader :link, :product_links
-    
-    def initialize
-        @link = "https://karedesign.ru/sitemap_index.xml"
-        @product_links = []
-    end
+  require 'open-uri'
+
+  attr_reader :link, :product_links
+
+  def initialize
+    @link = "https://karedesign.ru/sitemap_index.xml"
+    @product_links = []
+  end
 
     def call
         collect_links

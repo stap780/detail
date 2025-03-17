@@ -32,7 +32,7 @@
                       title: "Экспортировать картинки", data: { "turbo-method": :post, 'turbo-confirm': 'Экспортировать картинки в магазин?' }, 
                       class:"btn btn-sm btn-outline-secondary" if !kare.new_record? && kare.variants.present? %>
 
-        <%= link_to play_icon, pars_one_kare_path(kare), data: { "turbo-method": :get }, class: "btn" %>
+        <%= link_to play_icon, pars_one_kare_path(kare), data: { "turbo-method": :get, turbo_stream: true }, class: "btn" %>
         <%= link_to eye_fill_icon, kare.url, class: "btn", target: "_blank" %>
         <%= link_to trash_icon, kare, data: { "turbo-method": :delete, 'turbo-confirm': 'Are you sure?' }, class:"btn" %>
 

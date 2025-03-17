@@ -31,27 +31,27 @@ env "GEM_HOME", ENV["GEM_HOME"]
 set :output, "#{path}/log/cron.log"
 set :chronic_options, :hours24 => true
 
-every 1.day, at: ['19:00'] do
-  runner "Product.csv_param"
-end
-
-every 1.day, :at => '16:00' do
-  runner "Product.import"
-end
-
-# every 1.day, :at => '23:00' do
-#   runner "Kare.import"
+# every 1.day, at: ['19:00'] do
+#   runner "Product.csv_param"
 # end
 
-every 1.day, :at => '23:00' do
-  runner "Kare.pars"
-end
+# every 1.day, :at => '16:00' do
+#   runner "Product.import"
+# end
+
+# # every 1.day, :at => '23:00' do
+# #   runner "Kare.import"
+# # end
+
+# every 1.day, :at => '23:00' do
+#   runner "Kare.pars"
+# end
 
 
-every 1.day, :at => '04:10' do
-  runner "Kare.csv_param"
-end
+# every 1.day, :at => '04:10' do
+#   runner "Kare.csv_param"
+# end
 
-every 1.day, :at => '06:00' do
-  rake "file:create_log_zip_every_day"
-end
+# every 1.day, :at => '06:00' do
+#   rake "file:create_log_zip_every_day"
+# end

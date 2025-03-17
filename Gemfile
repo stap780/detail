@@ -43,7 +43,7 @@ gem 'will_paginate'
 gem 'ransack'
 gem 'roo'
 gem 'roo-xls'
-gem 'whenever', require: false
+# gem 'whenever', require: false
 gem 'mechanize'
 gem 'pg'
 
@@ -52,6 +52,8 @@ gem 'bcrypt_pbkdf', '< 2.0', :require => false
 gem 'ed25519', '~> 1.2', '>= 1.2.4'
 
 gem "sidekiq"
+gem 'sidekiq-scheduler'
+
 gem "faraday"
 gem 'net-ftp'
 gem 'will_paginate-bootstrap-style'

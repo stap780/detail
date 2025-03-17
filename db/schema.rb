@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.1].define(version: 2024_06_23_151335) do
+ActiveRecord::Schema[7.1].define(version: 2025_03_16_090451) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
@@ -29,6 +29,23 @@ ActiveRecord::Schema[7.1].define(version: 2024_06_23_151335) do
     t.index ["priority", "run_at"], name: "delayed_jobs_priority"
   end
 
+  create_table "idcs", id: :serial, force: :cascade do |t|
+    t.string "sku"
+    t.string "title"
+    t.string "desc"
+    t.string "cat"
+    t.string "charact"
+    t.string "charact_gab"
+    t.decimal "oldprice"
+    t.decimal "price"
+    t.integer "quantity"
+    t.string "image"
+    t.string "url"
+    t.datetime "created_at", precision: nil, null: false
+    t.datetime "updated_at", precision: nil, null: false
+    t.string "status", default: "new", null: false
+  end
+
   create_table "kares", id: :serial, force: :cascade do |t|
     t.string "sku"
     t.string "title"
@@ -43,23 +60,6 @@ ActiveRecord::Schema[7.1].define(version: 2024_06_23_151335) do
     t.string "image"
     t.string "url"
     t.string "brand"
-    t.datetime "created_at", precision: nil, null: false
-    t.datetime "updated_at", precision: nil, null: false
-    t.string "status", default: "new", null: false
-  end
-
-  create_table "products", id: :serial, force: :cascade do |t|
-    t.string "sku"
-    t.string "title"
-    t.string "desc"
-    t.string "cat"
-    t.string "charact"
-    t.string "charact_gab"
-    t.decimal "oldprice"
-    t.decimal "price"
-    t.integer "quantity"
-    t.string "image"
-    t.string "url"
     t.datetime "created_at", precision: nil, null: false
     t.datetime "updated_at", precision: nil, null: false
     t.string "status", default: "new", null: false

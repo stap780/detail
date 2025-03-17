@@ -1,0 +1,58 @@
+<div class="row mb-2 mr-0 ml-0 align-items-center">
+  <div class="col-2 d-flex flex-column">
+    <div><span class="h2 me-2">idcollection</span></div>
+    <span><small>Всего: <%= Idc.all_size %></small></span>
+    <span><small>Отфильтровано: <%=@idcs.count%></small></span>
+    <span><small>Больше 0: <%= Idc.qt_not_null_size %></small></span>
+  </div>
+  <div class="col-1 m-0 p-0 dropdown">
+    <a class="btn btn-secondary dropdown-toggle" href="#" role="button" id="dropdownMenuLink" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+      Действия
+    </a>
+    <div class="dropdown-menu" aria-labelledby="dropdownMenuLink">
+      <%= link_to 'Обновить каталог', import_idcs_path, class: 'dropdown-item', data: { turbo: true, turbo_stream: true }%>
+      <%= link_to 'Сформировать файл', csv_param_idcs_path, class: 'dropdown-item', data: { turbo: true, turbo_stream: true }%>
+    </div>
+  </div>
+  <%= search_form_for @search, html: {class: 'col form-inline m-0 p-0'}  do |f|%>
+    <div class="input-group">
+      <%= f.select :status_eq, Idc::STATUS, {include_blank: false, prompt: 'Статус'} , class: "form-select" , style: "max-width: 150px;" %>      
+      <%= f.search_field :sku_or_title_cont, placeholder: 'Артикул, Название', class: "form-control input-sm"%>
+      <%= f.collection_select :cat_cont, Idc.product_cat, "cat", "cat", {include_blank: false, prompt: 'Категория'} , class: "form-select input-sm" , style: "max-width: 150px;" %>
+      <%= f.select :quantity_in, [['= 0', 0],['> 0', 1]], { include_blank: false, prompt: 'Кол-во'}, class: "form-select input-sm"  %>
+      <%= button_tag(type: 'submit', :class => "btn btn-info") do %><%= search_icon%><% end %>
+      <%= link_to arrow_clockwise_icon, idcs_path, class: 'btn btn-outline-dark' %>
+    </div>
+  <% end %>
+  <%= form_with url: bulk_export_idcs_path, method: :post, data: { turbo: true }, id: :bulk_form, class: "col-2 m-0 p-0" do |f| %>
+    <%# f.button edit_icon, type: :submit, class: "btn btn-outline-secondary", formaction: edit_multiple_idcs_path, formmethod: "get", data: { turbo: true, turbo_stream: true } %>
+    <%= f.button type: :submit, class: "btn btn-outline-secondary", title: 'экспорт' do %><%= list_icon%><% end%>
+    <%= f.button type: :submit, class: "btn btn-outline-secondary", formaction: delete_selected_idcs_path, data: { turbo: true, turbo_confirm: "Are you sure?" } do %><%= trash_icon%><% end%>
+  <% end %>
+</div>
+
+
+<div id="datatables-idcs_wrapper">
+  <div class="col-12 list-group list-group-striped" data-controller="selectall">
+    <div class="row py-2 px-0 justify-content-between align-items-center text-start">
+      <%= div_check_box_tag_all %>
+      <%= tag.div(class: 'col-1 fw-semibold ps-0' ) do %>
+        <%= sort_link(@search, :id, '', class: "text-decoration-none text-black margin-negative-left") %>
+        <%= t( 'helpers.label.idc.status')%>
+      <% end %>
+      <%= tag.div( '', class: 'col-4 fw-semibold' )%>
+      <%= tag.div( t( 'helpers.label.idc.price'), class: 'col-1 fw-semibold' )%>
+      <%= tag.div( t( 'helpers.label.idc.quantity'), class: 'col-1 fw-semibold' )%>
+      <%= tag.div( t( 'helpers.label.idc.image'), class: 'col-2 fw-semibold' )%>
+      <%= tag.div('', class: 'col fw-semibold')%>
+    </div>
+    <%= turbo_stream_from "idcs" %>
+    <%= turbo_frame_tag 'idcs', data: { } do %>
+        <%= render @idcs %>
+    <% end %>
+  </div>
+</div>
+
+<div class="digg_pagination mt-4 mb-4">
+  <%= will_paginate @idcs, renderer: WillPaginate::ActionView::BootstrapLinkRenderer, list_classes: %w(pagination justify-content-end my-4) %>
+</div>

@@ -7,8 +7,7 @@
 </ul>
 <% end %>
 <% if user_signed_in? %>
-<p>Всего товаров: <%=Product.all_size %></p>
-<p>Больше 0: <%= Product.qt_not_null_size %></p>
+
 <% file = "#{Rails.public_path}"+'/ins_detail.csv'%>
 <% if File.file?(file) %>
 <% size = File.size(file) %>
