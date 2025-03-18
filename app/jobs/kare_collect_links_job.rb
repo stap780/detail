@@ -3,11 +3,12 @@ class KareCollectLinksJob < ApplicationJob
   sidekiq_options retry: 0
 
   def perform()
+    Webshare.new.refresh_proxy_list
     Kare.update_all(status: 'new',quantity: 0)
     service = KareCollectLinks.call
     if service
       kares = Rails.env.development? ? Kare.order(:id).limit(100) : Kare.all.order(:id)
-      kares.each_with_index do |kare, index|
+      kares.each do |kare|
         KareParsPageJob.perform_later(kare.url)
       end
     end

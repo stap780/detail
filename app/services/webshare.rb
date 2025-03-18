@@ -8,30 +8,44 @@ class Webshare < ApplicationService
 
   def collect_proxy_list
     proxy_list = []
-    file_name = 'proxy_list.txt'
-    remove_file(file_name)
-    download_proxy_list_file(file_name)
+    update_proxy_list
 
     File.open(Rails.root.join('public', file_name), 'r').each_line do |line|
       proxy = line.split(':')
-      proxy = {
+      data = {
         ip: proxy[0],
         port: proxy[1],
         username: Rails.application.credentials.webshare.username,
         password: Rails.application.credentials.webshare.password
       }
-      proxy_list << proxy
+      proxy_list << data
     end
 
     proxy_list
   end
 
-  def config_info
-    response = RestClient.get("#{BASE_URL}/proxy/config/", headers )
-    JSON.parse(response.body)
+  def refresh_proxy_list
+    update_proxy_list
   end
 
   def proxy_by_index(index)
+    file_name = 'proxy_list.txt'
+    file_path = Rails.root.join('public', file_name)
+    return nil unless File.exist?(file_path)
+
+    proxy_link = nil
+    username = Rails.application.credentials.webshare.username
+    password = Rails.application.credentials.webshare.password
+    File.open(Rails.root.join('public', file_name), 'r').each_with_index do |line, idx|
+      next unless idx+1 == index
+
+      proxy = line.split(':')
+      proxy_link = "http://#{username}:#{password}@#{proxy[0]}:#{proxy[1]}"
+    end
+    proxy_link
+  end
+
+  def proxy_by_index_by_api(index)
     response = RestClient.get("#{BASE_URL}/proxy/list/?mode=direct&page=#{index}&page_size=1", headers)
     data = JSON.parse(response.body)['results']
     username = Rails.application.credentials.webshare.username
@@ -45,9 +59,10 @@ class Webshare < ApplicationService
     { Authorization: "Token #{@api_token}" }
   end
 
-  def proxy_list_download_token
-    config = config_info
-    config['proxy_list_download_token']
+  def update_proxy_list
+    file_name = 'proxy_list.txt'
+    remove_file(file_name)
+    download_proxy_list_file(file_name)
   end
 
   def download_proxy_list_file(file_name)
@@ -56,6 +71,16 @@ class Webshare < ApplicationService
     File.open(Rails.root.join('public', file_name), 'wb') do |file|
       file.write(response.body)
     end
+  end
+
+  def proxy_list_download_token
+    config = config_info
+    config['proxy_list_download_token']
+  end
+
+  def config_info
+    response = RestClient.get("#{BASE_URL}/proxy/config/", headers )
+    JSON.parse(response.body)
   end
 
   def remove_file(file_name)  

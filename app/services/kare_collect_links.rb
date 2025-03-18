@@ -1,6 +1,5 @@
 # class KareCollectLinks < ApplicationService
 class KareCollectLinks < ApplicationService
-  require 'open-uri'
 
   attr_reader :link, :product_links
 

@@ -7,16 +7,15 @@ class KareParsPage < ApplicationService
 
   def initialize(link)
     @link = link
-    @doc
+    @doc = nil
     @data = {}
-    # @proxy = proxy
     @kare = Kare.find_by_url(@link)
     @kare.update(status: 'process') if @kare.present?
   end
 
   def call
     get_doc
-    return 'not product page' unless check_product_page
+    return unless check_product_page
 
     remove_double_info
     parse_doc
@@ -27,6 +26,7 @@ class KareParsPage < ApplicationService
   def get_doc
     Rails.logger = Logger.new(Rails.root.join('log', 'kare_pars.log'))
     Rails.logger.info 'start get_doc'
+
     # conn = Faraday.new(url: @link,
     #                     ssl: { verify: false },
     #                     proxy: get_proxy
@@ -40,38 +40,40 @@ class KareParsPage < ApplicationService
     # Rails.logger.info "get_doc response.status => #{response.status}"
     # response.body
     # @doc = Nokogiri::HTML(response.body)
-    Rails.logger.info("Starting to parse URL: #{@link}")
-    RestClient::Request.execute(url: @link, method: :get, verify_ssl: false, proxy: get_proxy) do |response, request, result, &block|
+    # Rails.logger.info("Starting to parse URL: #{@link}")
+
+    RestClient.proxy = get_proxy
+    RestClient.get(@link) { |response, request, result, &block|
+      Rails.logger.info("Send request - #{request.inspect}")
+      # Rails.logger.info("Get response headers - #{response.headers}")
       case response.code
       when 200
         Rails.logger.info("Successfully fetched URL: #{@link}")
         @doc = Nokogiri::HTML(response.body)
+      when 301, 302, 307
+        response.follow_redirection
+      when 400
+        Rails.logger.error("HTTP error for URL: #{@link} - #{response.code} - #{response}")
+        @kare.update!(status: 'error') if @kare.present?
       when 404
-        Rails.logger.error("Error 404: URL not found - #{@link}")
+        Rails.logger.error("HTTP error for URL: #{@link} - #{response.code} - #{response}")
+        @kare.update!(status: 'error') if @kare.present?
+      when 423
+        Rails.logger.error("HTTP error for URL: #{@link} - #{response.code} - #{response}")
         @kare.update!(status: 'error') if @kare.present?
       when 429
-        Rails.logger.error("Error 429: Too many requests for URL: #{@link}")
-        Rails.logger.debug("Request details: #{request}")
-        Rails.logger.debug("Result details: #{result}")
+        Rails.logger.error("HTTP error for URL: #{@link} - #{response.code} - #{response}")
         @kare.update!(status: 'error') if @kare.present?
-      when 503
-        Rails.logger.error("Error 503: Service unavailable for URL: #{@link}")
-        @kare.update!(status: 'error') if @kare.present?
-        break
       else
-        Rails.logger.warn("Unexpected response code #{response.code} for URL: #{@link}")
+        Rails.logger.error("Error in else for URL: #{@link}")
         response.return!(&block)
       end
-    end
-  rescue RestClient::ExceptionWithResponse => e
-    Rails.logger.error("RestClient exception for URL: #{@url} - #{e.message} -  #{e.inspect}")
-    @kare.update!(status: 'error') if @kare.present?
-  rescue StandardError => e
-    Rails.logger.error("Unexpected error while parsing URL: #{@url} - #{e.message}")
-    @kare.update!(status: 'error') if @kare.present?
+    }
   end
 
   def check_product_page
+    return false if @doc.nil?
+
     puts 'start check_product_page'
     @doc.css('.rs-product__card').present? && @doc.css('.rs-product__card').inner_html.present?
   end
@@ -126,15 +128,13 @@ class KareParsPage < ApplicationService
 
   def get_proxy
     index = @kare.present? ? get_index : random_index
-
-    proxy = Webshare.new
-    link = proxy.proxy_by_index(index)
+    link = Webshare.new.proxy_by_index(index)
     puts "proxy link => #{link}"
     link
   end
 
   def get_index
-    check = @kare.id.to_s.size > 1 ? @kare.id.to_s[-2..-1].to_i : @kare.id.to_i
+    check = @kare.id.to_s.size > 1 ? @kare.id.to_s[-2..-1].to_i : @kare.id
     check.zero? ? random_index : check
   end
 

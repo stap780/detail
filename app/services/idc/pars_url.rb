@@ -16,7 +16,9 @@ class Idc::ParsUrl < ApplicationService
   def parse_url
     Rails.logger = Logger.new(Rails.root.join('log', 'idc_pars.log'))
     Rails.logger.info("Starting to parse URL: #{@url}")
-    RestClient::Request.execute(url: @url, method: :get, verify_ssl: false, proxy: get_proxy) do |response, request, result, &block|
+    # RestClient::Request.execute(url: @url, method: :get, verify_ssl: false, proxy: get_proxy) do |response, request, result, &block|
+    RestClient.proxy = get_proxy
+    RestClient.get(@url) { |response, request, result, &block|
       case response.code
       when 200
         Rails.logger.info("Successfully fetched URL: #{@url}")
@@ -37,16 +39,10 @@ class Idc::ParsUrl < ApplicationService
         @idc.update!(status: 'error') if @idc.present?
         break
       else
-        Rails.logger.warn("Unexpected response code #{response.code} for URL: #{@url}")
+        Rails.logger.error("Error in else for URL: #{@url}")
         response.return!(&block)
       end
-    end
-  rescue RestClient::ExceptionWithResponse => e
-    Rails.logger.error("RestClient exception for URL: #{@url} - #{e.message} -  #{e.inspect}")
-    @idc.update!(status: 'error') if @idc.present?
-  rescue StandardError => e
-    Rails.logger.error("Unexpected error while parsing URL: #{@url} - #{e.message}")
-    @idc.update!(status: 'error') if @idc.present?
+    }
   end
 
   def collect_data(pr_doc)
