@@ -1,6 +1,7 @@
+# KareParsPage < ApplicationService
 class KareParsPage < ApplicationService
-  require 'open-uri'
-  require 'faraday'
+  # require 'open-uri'
+  # require 'faraday'
 
   attr_reader :link, :doc, :data
 
@@ -15,7 +16,6 @@ class KareParsPage < ApplicationService
 
   def call
     get_doc
-
     return 'not product page' unless check_product_page
 
     remove_double_info
@@ -27,19 +27,48 @@ class KareParsPage < ApplicationService
   def get_doc
     Rails.logger = Logger.new(Rails.root.join('log', 'kare_pars.log'))
     Rails.logger.info 'start get_doc'
-    conn = Faraday.new(url: @link,
-                        ssl: { verify: false },
-                        proxy: get_proxy
-                        ) do |faraday|
-        # Set the Authorization header with the Bearer token
-        # faraday.request :authorization, 'Bearer', 'MySecretKey'
+    # conn = Faraday.new(url: @link,
+    #                     ssl: { verify: false },
+    #                     proxy: get_proxy
+    #                     ) do |faraday|
+    #     # Set the Authorization header with the Bearer token
+    #     # faraday.request :authorization, 'Bearer', 'MySecretKey'
+    # end
+    # response = conn.get
+    # Rails.logger.info "get_doc response => #{response}"
+    # response.headers
+    # Rails.logger.info "get_doc response.status => #{response.status}"
+    # response.body
+    # @doc = Nokogiri::HTML(response.body)
+    Rails.logger.info("Starting to parse URL: #{@link}")
+    RestClient::Request.execute(url: @link, method: :get, verify_ssl: false, proxy: get_proxy) do |response, request, result, &block|
+      case response.code
+      when 200
+        Rails.logger.info("Successfully fetched URL: #{@link}")
+        @doc = Nokogiri::HTML(response.body)
+      when 404
+        Rails.logger.error("Error 404: URL not found - #{@link}")
+        @kare.update!(status: 'error') if @kare.present?
+      when 429
+        Rails.logger.error("Error 429: Too many requests for URL: #{@link}")
+        Rails.logger.debug("Request details: #{request}")
+        Rails.logger.debug("Result details: #{result}")
+        @kare.update!(status: 'error') if @kare.present?
+      when 503
+        Rails.logger.error("Error 503: Service unavailable for URL: #{@link}")
+        @kare.update!(status: 'error') if @kare.present?
+        break
+      else
+        Rails.logger.warn("Unexpected response code #{response.code} for URL: #{@link}")
+        response.return!(&block)
+      end
     end
-    response = conn.get
-    Rails.logger.info "get_doc response => #{response}"
-    response.headers
-    Rails.logger.info "get_doc response.status => #{response.status}"
-    response.body
-    @doc = Nokogiri::HTML(response.body)
+  rescue RestClient::ExceptionWithResponse => e
+    Rails.logger.error("RestClient exception for URL: #{@url} - #{e.message} -  #{e.inspect}")
+    @kare.update!(status: 'error') if @kare.present?
+  rescue StandardError => e
+    Rails.logger.error("Unexpected error while parsing URL: #{@url} - #{e.message}")
+    @kare.update!(status: 'error') if @kare.present?
   end
 
   def check_product_page
@@ -78,18 +107,18 @@ class KareParsPage < ApplicationService
     images = @doc.css('.rs-product__slide img').map { |im| im['src'] }
     cat = (['Бренды', 'KARE'] + @doc.css('.rs-breadcrumbs__item a').map { |a| a.text if !a.text.include?(title) && !a.text.include?('Главная') }.reject(&:blank?)).join('/')
     data = {
-        sku: "KARE__#{@doc.css('.rs-product__article span').text}",
-        title: title,
-        full_title: @doc.css('.rs-product__title h4').text,
-        desc: full_desc.join,
-        cat: cat,
-        charact: charact,
-        price: price.to_i.floor,
-        quantity_euro: quantity_euro.join.to_i,
-        quantity: quantity.join.to_i,
-        image: images.join(' '),
-        url: @link,
-        status: 'finish'
+      sku: "KARE__#{@doc.css('.rs-product__article span').text}",
+      title: title,
+      full_title: @doc.css('.rs-product__title h4').text,
+      desc: full_desc.join,
+      cat: cat,
+      charact: charact,
+      price: price.to_i.floor,
+      quantity_euro: quantity_euro.join.to_i,
+      quantity: quantity.join.to_i,
+      image: images.join(' '),
+      url: @link,
+      status: 'finish'
     }
 
     @kare.present? ? @kare.update!(data) : Kare.create!(data)

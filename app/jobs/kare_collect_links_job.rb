@@ -4,7 +4,7 @@ class KareCollectLinksJob < ApplicationJob
 
   def perform()
     Kare.update_all(status: 'new',quantity: 0)
-    service = KareCollectLinks.new.call
+    service = KareCollectLinks.call
     if service
       kares = Rails.env.development? ? Kare.order(:id).limit(100) : Kare.all.order(:id)
       kares.each_with_index do |kare, index|

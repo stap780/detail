@@ -17,19 +17,18 @@ class Idc::Import  < ApplicationService
 
   def collect_urls
     page_number = 1
-    max_page = fetch_max_page
+    max_page = Rails.env.development? ? 4 : fetch_max_page
 
     urls = []
 
     while page_number <= max_page
-      cat_l = page_number == 1 ? "#{BASE_URL}" : "#{BASE_URL}?PAGEN_2=page_number"
+      cat_l = page_number == 1 ? "#{BASE_URL}" : "#{BASE_URL}/?PAGEN_4=page_number"
       response = RestClient.get(cat_l, { accept: 'text/html', 'Accept-Charset' => 'utf-8' })
       document = Nokogiri::HTML(response.body)
       document.css('.catalog-section__title-link').each do |link|
         urls << link['href']
       end
       page_number += 1
-      break if page_number > 4 && Rails.env.development?
     end
 
     urls
