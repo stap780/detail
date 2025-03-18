@@ -14,49 +14,67 @@ class Idc::ParsUrl < ApplicationService
   private
 
   def parse_url
+    Rails.logger = Logger.new(Rails.root.join('log', 'idc_pars.log'))
+    Rails.logger.info("Starting to parse URL: #{@url}")
     RestClient::Request.execute(url: @url, method: :get, verify_ssl: false, proxy: get_proxy) do |response, request, result, &block|
       case response.code
       when 200
+        Rails.logger.info("Successfully fetched URL: #{@url}")
         pr_doc = Nokogiri::HTML(response)
-        title = pr_doc.css('h1').text.squish
-        desc = pr_doc.css('.catalog-element-description__text').text.squish
-        cat = clear_cat(pr_doc)
-        sku = clear_sku(pr_doc)
-        charact = clear_charact(pr_doc)
-        charact_gab = clear_charact_gab(pr_doc)
-        oldprice = clear_oldprice(pr_doc)
-        price = clear_price(pr_doc)
-        quantity = clear_quantity(pr_doc)
-        image = clear_image(pr_doc)
-
-        data = {
-          sku: sku,
-          title: title,
-          desc: desc,
-          cat: cat,
-          charact: charact,
-          charact_gab: charact_gab,
-          oldprice: oldprice,
-          price: price,
-          quantity: quantity,
-          image: image,
-          url: @url,
-          status: 'finish'
-        }
-        puts "data => #{data}"
-
+        data = collect_data(pr_doc)
+        # Rails.logger.debug("Collected data: #{data}")
         @idc.present? ? @idc.update!(data.except!(:sku)) : Idc.create!(data)
       when 404
-        puts 'error 404'
+        Rails.logger.error("Error 404: URL not found - #{@url}")
+        @idc.update!(status: 'error') if @idc.present?
+      when 429
+        Rails.logger.error("Error 429: Too many requests for URL: #{@url}")
+        Rails.logger.debug("Request details: #{request}")
+        Rails.logger.debug("Result details: #{result}")
         @idc.update!(status: 'error') if @idc.present?
       when 503
-        puts 'error 503 break'
+        Rails.logger.error("Error 503: Service unavailable for URL: #{@url}")
         @idc.update!(status: 'error') if @idc.present?
         break
       else
+        Rails.logger.warn("Unexpected response code #{response.code} for URL: #{@url}")
         response.return!(&block)
       end
     end
+  rescue RestClient::ExceptionWithResponse => e
+    Rails.logger.error("RestClient exception for URL: #{@url} - #{e.message} -  #{e.inspect}")
+    @idc.update!(status: 'error') if @idc.present?
+  rescue StandardError => e
+    Rails.logger.error("Unexpected error while parsing URL: #{@url} - #{e.message}")
+    @idc.update!(status: 'error') if @idc.present?
+  end
+
+  def collect_data(pr_doc)
+    title = pr_doc.css('h1').text.squish
+    desc = pr_doc.css('.catalog-element-description__text').text.squish
+    cat = clear_cat(pr_doc)
+    sku = clear_sku(pr_doc)
+    charact = clear_charact(pr_doc)
+    charact_gab = clear_charact_gab(pr_doc)
+    oldprice = clear_oldprice(pr_doc)
+    price = clear_price(pr_doc)
+    quantity = clear_quantity(pr_doc)
+    image = clear_image(pr_doc)
+
+    {
+      sku: sku,
+      title: title,
+      desc: desc,
+      cat: cat,
+      charact: charact,
+      charact_gab: charact_gab,
+      oldprice: oldprice,
+      price: price,
+      quantity: quantity,
+      image: image,
+      url: @url,
+      status: 'finish'
+    }
   end
 
   def clear_cat(pr_doc)

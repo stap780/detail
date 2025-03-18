@@ -69,7 +69,7 @@ group :development do
   gem 'capistrano-rails-console', require: false
   gem 'capistrano-rvm', require: false
   gem "capistrano3-puma", require: false
-  gem 'capistrano-sidekiq'
+  # gem 'capistrano-sidekiq'
   # gem 'hub', :require=>nil
   # gem 'rails_layout'
 end

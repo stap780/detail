@@ -7,9 +7,8 @@ class Idc::Import  < ApplicationService
   end
 
   def call
-    # collect_urls
     urls = collect_urls
-    urls.each do |url|
+    urls.uniq.each do |url|
       IdcParsUrlJob.perform_later("https://idcollection.ru#{url}")
     end
   end

@@ -106,10 +106,6 @@ GEM
     capistrano-rvm (0.1.2)
       capistrano (~> 3.0)
       sshkit (~> 1.2)
-    capistrano-sidekiq (3.0.0)
-      capistrano (>= 3.9.0)
-      capistrano-bundler
-      sidekiq (>= 6.0.6)
     capistrano3-puma (6.0.0.beta.1)
       capistrano (~> 3.7)
       capistrano-bundler
@@ -383,7 +379,6 @@ DEPENDENCIES
   capistrano-rails
   capistrano-rails-console
   capistrano-rvm
-  capistrano-sidekiq
   capistrano3-puma
   cocoon
   cssbundling-rails (~> 1.4)

@@ -25,7 +25,8 @@ class KareParsPage < ApplicationService
   private
 
   def get_doc
-    puts 'start get_doc'
+    Rails.logger = Logger.new(Rails.root.join('log', 'kare_pars.log'))
+    Rails.logger.info 'start get_doc'
     conn = Faraday.new(url: @link,
                         ssl: { verify: false },
                         proxy: get_proxy
@@ -34,9 +35,9 @@ class KareParsPage < ApplicationService
         # faraday.request :authorization, 'Bearer', 'MySecretKey'
     end
     response = conn.get
-    puts "get_doc response => #{response}"
+    Rails.logger.info "get_doc response => #{response}"
     response.headers
-    puts "get_doc response.status => #{response.status}"
+    Rails.logger.info "get_doc response.status => #{response.status}"
     response.body
     @doc = Nokogiri::HTML(response.body)
   end

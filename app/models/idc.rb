@@ -207,4 +207,11 @@ class Idc < ApplicationRecord
     end
   end
 
+  def self.pars
+    urls = Idc.all.pluck(:url)
+    urls.each do |url|
+      Idc::ParsUrl.call(url)
+    end
+  end
+
 end
