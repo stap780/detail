@@ -5,6 +5,7 @@ class IdcImportJob < ApplicationJob
 
   def perform
     Webshare.new.refresh_proxy_list
-    Idc::Import.call
+    # Idc::Import.call
+    Idc::Sb.call
   end
 end

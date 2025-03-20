@@ -43,7 +43,7 @@ class KareParsPage < ApplicationService
     # Rails.logger.info("Starting to parse URL: #{@link}")
 
     RestClient.proxy = get_proxy
-    RestClient.get(@link) { |response, request, result, &block|
+    RestClient.get(@link, open_timeout: 240 ) { |response, request, result, &block|
       Rails.logger.info("Send request - #{request.inspect}")
       # Rails.logger.info("Get response headers - #{response.headers}")
       case response.code
@@ -66,6 +66,7 @@ class KareParsPage < ApplicationService
         @kare.update!(status: 'error') if @kare.present?
       else
         Rails.logger.error("Error in else for URL: #{@link}")
+        @kare.update!(status: 'error') if @kare.present?
         response.return!(&block)
       end
     }

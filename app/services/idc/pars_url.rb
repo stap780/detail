@@ -16,9 +16,8 @@ class Idc::ParsUrl < ApplicationService
   def parse_url
     Rails.logger = Logger.new(Rails.root.join('log', 'idc_pars.log'))
     Rails.logger.info("Starting to parse URL: #{@url}")
-    # RestClient::Request.execute(url: @url, method: :get, verify_ssl: false, proxy: get_proxy) do |response, request, result, &block|
     RestClient.proxy = get_proxy
-    RestClient.get(@url) { |response, request, result, &block|
+    RestClient.get(@url, open_timeout: 240 ) { |response, request, result, &block|
       case response.code
       when 200
         Rails.logger.info("Successfully fetched URL: #{@url}")
@@ -40,6 +39,7 @@ class Idc::ParsUrl < ApplicationService
         break
       else
         Rails.logger.error("Error in else for URL: #{@url}")
+        @idc.update!(status: 'error') if @idc.present?
         response.return!(&block)
       end
     }

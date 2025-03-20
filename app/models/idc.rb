@@ -13,7 +13,7 @@ class Idc < ApplicationRecord
   scope :product_image_nil, -> { where(image: [nil, '']).order(:id) }
   validates :sku, uniqueness: true
   validates :url, uniqueness: true, presence: true
-  STATUS = ['new', 'process', 'finish', 'error']
+  STATUS = %w[new process finish error]
 
   def self.ransackable_attributes(auth_object = nil)
     Idc.attribute_names
