@@ -5,6 +5,7 @@ class Idc::ParsUrl < ApplicationService
     @url = url
     @idc = Idc.find_by_url(@url)
     @idc.update!(status: 'process') if @idc.present?
+    setup_logger
   end
 
   def call
@@ -13,36 +14,41 @@ class Idc::ParsUrl < ApplicationService
 
   private
 
+  def setup_logger
+    @logger = Logger.new(Rails.root.join('log', 'idc_pars.log'))
+    @logger.formatter = Logger::Formatter.new
+  end
+
   def parse_url
-    Rails.logger = Logger.new(Rails.root.join('log', 'idc_pars.log'))
-    Rails.logger.info("Starting to parse URL: #{@url}")
+    @logger.info("Starting to parse URL: #{@url}")
     RestClient.proxy = get_proxy
-    RestClient.get(@url, open_timeout: 240 ) { |response, request, result, &block|
+    RestClient.get(@url, open_timeout: 240, verify_ssl: false) { |response, request, result, &block|
       case response.code
       when 200
-        Rails.logger.info("Successfully fetched URL: #{@url}")
+        @logger.info("Successfully fetched URL: #{@url}")
         pr_doc = Nokogiri::HTML(response)
         data = collect_data(pr_doc)
-        # Rails.logger.debug("Collected data: #{data}")
         @idc.present? ? @idc.update!(data.except!(:sku)) : Idc.create!(data)
       when 404
-        Rails.logger.error("Error 404: URL not found - #{@url}")
-        @idc.update!(status: 'error') if @idc.present?
+        @logger.error("Error 404: URL not found - #{@url}")
+        handle_error_status
       when 429
-        Rails.logger.error("Error 429: Too many requests for URL: #{@url}")
-        Rails.logger.debug("Request details: #{request}")
-        Rails.logger.debug("Result details: #{result}")
-        @idc.update!(status: 'error') if @idc.present?
+        @logger.error("Error 429: Too many requests for URL: #{@url}")
+        handle_error_status
       when 503
-        Rails.logger.error("Error 503: Service unavailable for URL: #{@url}")
-        @idc.update!(status: 'error') if @idc.present?
-        break
+        @logger.error("Error 503: Service unavailable for URL: #{@url}")
+        handle_error_status
+        next
       else
-        Rails.logger.error("Error in else for URL: #{@url}")
-        @idc.update!(status: 'error') if @idc.present?
+        @logger.error("Error in else for URL: #{@url}")
+        handle_error_status
         response.return!(&block)
       end
     }
+  end
+
+  def handle_error_status
+    @idc.update!(status: 'error') if @idc.present?
   end
 
   def collect_data(pr_doc)

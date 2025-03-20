@@ -1,8 +1,5 @@
 # KareParsPage < ApplicationService
 class KareParsPage < ApplicationService
-  # require 'open-uri'
-  # require 'faraday'
-
   attr_reader :link, :doc, :data
 
   def initialize(link)
@@ -11,6 +8,7 @@ class KareParsPage < ApplicationService
     @data = {}
     @kare = Kare.find_by_url(@link)
     @kare.update(status: 'process') if @kare.present?
+    setup_logger
   end
 
   def call
@@ -23,53 +21,43 @@ class KareParsPage < ApplicationService
 
   private
 
+  def setup_logger
+    @logger = Logger.new(Rails.root.join('log', 'kare_pars_page.log'))
+    @logger.formatter = Logger::Formatter.new
+  end
+
   def get_doc
-    Rails.logger = Logger.new(Rails.root.join('log', 'kare_pars.log'))
-    Rails.logger.info 'start get_doc'
-
-    # conn = Faraday.new(url: @link,
-    #                     ssl: { verify: false },
-    #                     proxy: get_proxy
-    #                     ) do |faraday|
-    #     # Set the Authorization header with the Bearer token
-    #     # faraday.request :authorization, 'Bearer', 'MySecretKey'
-    # end
-    # response = conn.get
-    # Rails.logger.info "get_doc response => #{response}"
-    # response.headers
-    # Rails.logger.info "get_doc response.status => #{response.status}"
-    # response.body
-    # @doc = Nokogiri::HTML(response.body)
-    # Rails.logger.info("Starting to parse URL: #{@link}")
-
-    RestClient.proxy = get_proxy
-    RestClient.get(@link, open_timeout: 240 ) { |response, request, result, &block|
-      Rails.logger.info("Send request - #{request.inspect}")
-      # Rails.logger.info("Get response headers - #{response.headers}")
-      case response.code
-      when 200
-        Rails.logger.info("Successfully fetched URL: #{@link}")
-        @doc = Nokogiri::HTML(response.body)
-      when 301, 302, 307
-        response.follow_redirection
-      when 400
-        Rails.logger.error("HTTP error for URL: #{@link} - #{response.code} - #{response}")
-        @kare.update!(status: 'error') if @kare.present?
-      when 404
-        Rails.logger.error("HTTP error for URL: #{@link} - #{response.code} - #{response}")
-        @kare.update!(status: 'error') if @kare.present?
-      when 423
-        Rails.logger.error("HTTP error for URL: #{@link} - #{response.code} - #{response}")
-        @kare.update!(status: 'error') if @kare.present?
-      when 429
-        Rails.logger.error("HTTP error for URL: #{@link} - #{response.code} - #{response}")
-        @kare.update!(status: 'error') if @kare.present?
-      else
-        Rails.logger.error("Error in else for URL: #{@link}")
-        @kare.update!(status: 'error') if @kare.present?
-        response.return!(&block)
+    @logger.info 'Starting get_doc method'
+    begin
+      RestClient.proxy = get_proxy
+      RestClient.get(@link, open_timeout: 240, verify_ssl: false) do |response, request, _result, &block|
+        @logger.info("Send request - #{request.inspect}")
+        case response.code
+        when 200
+          @logger.info("Successfully fetched URL: #{@link}")
+          @doc = Nokogiri::HTML(response.body)
+        when 301, 302, 307
+          response.follow_redirection
+        when 400, 404, 423, 429
+          @logger.error("HTTP error for URL: #{@link} - #{response.code} - #{response}")
+          handle_error_status
+        else
+          @logger.error("Unhandled response code for URL: #{@link}")
+          handle_error_status
+          response.return!(&block)
+        end
       end
-    }
+    rescue RestClient::Exceptions::Timeout, RestClient::Exceptions::OpenTimeout => e
+      @logger.error("Timeout error for URL: #{@link} - #{e.message}")
+      handle_error_status
+    rescue StandardError => e
+      @logger.error("Unexpected error for URL: #{@link} - #{e.message}")
+      handle_error_status
+    end
+  end
+
+  def handle_error_status
+    @kare.update!(status: 'error') if @kare.present?
   end
 
   def check_product_page
