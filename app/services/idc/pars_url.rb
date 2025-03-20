@@ -145,10 +145,13 @@ class Idc::ParsUrl < ApplicationService
 
     if thumb_node.size.positive?
       thumb_node.each do |p|
-        picts.push(p['src']) unless p['src'].include?('3dbutton')
+        next if p['src'].include?('3dbutton')
+
+        img = p['src'].gsub('resize_cache', 'iblock').gsub('197_140_1/', '')
+        picts.push(img)
       end
     end
-    picts.reject(&:blank?).map { |a| "https://idcollection.ru#{ a.gsub('resize_cache','iblock').gsub('197_140_1/', '') }" }.uniq.join(' ')
+    picts.reject(&:blank?).map { |a| "https://idcollection.ru#{a}" }.uniq.join(' ')
   end
 
   def get_proxy
