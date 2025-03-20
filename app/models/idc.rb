@@ -68,43 +68,44 @@ class Idc < ApplicationRecord
           glubina_sid = ''
           visota_sid = ''
           diametr = ''
-
-          if charact_gab.include?('A.') && charact_gab.include?('Б.')
-            shirina = charact_gab.split('|')[0].gsub('A. ', '') if !charact_gab.split('|')[0].nil? && charact_gab.split('|')[0].include?('A.')
-            glubina = charact_gab.split('|')[1].gsub('Б. ', '') if !charact_gab.split('|')[1].nil? && charact_gab.split('|')[1].include?('Б.')
-            visota = charact_gab.split('|')[2].gsub('С. ', '') if !charact_gab.split('|')[2].nil? && charact_gab.split('|')[2].include?('С.')
-            glubina_sid = charact_gab.split('|')[3].gsub('Д. ', '') if !charact_gab.split('|')[3].nil? && charact_gab.split('|')[3].include?('Д.')
-            visota_sid = charact_gab.split('|')[4].gsub('Е. ', '') if !charact_gab.split('|')[4].nil? && charact_gab.split('|')[4].include?('Е.')
-          end
-          if charact_gab.include?('A.') && charact_gab.include?('B.')
-            shirina = charact_gab.split('|')[0].gsub('A. ', '') if !charact_gab.split('|')[0].nil? && charact_gab.split('|')[0].include?('A.')
-            glubina = charact_gab.split('|')[1].gsub('B. ', '') if !charact_gab.split('|')[1].nil? && charact_gab.split('|')[1].include?('B.')
-            visota = charact_gab.split('|')[2].gsub('C. ', '') if !charact_gab.split('|')[2].nil? && charact_gab.split('|')[2].include?('C.')
-            glubina_sid = charact_gab.split('|')[3].gsub('D. ', '') if !charact_gab.split('|')[3].nil? && charact_gab.split('|')[3].include?('D.')
-            visota_sid = charact_gab.split('|')[4].gsub('E. ', '') if !charact_gab.split('|')[4].nil? && charact_gab.split('|')[4].include?('E.')
-          end
-          if charact_gab.split('x').size == 3 && charact_gab.include?('H.') && !charact_gab.include?('ø')
-            shirina = charact_gab.split('x')[0]
-            glubina = charact_gab.split('x')[1]
-            visota = charact_gab.split('x')[2].gsub('H.', '')
-          end
-          if charact_gab.split('x').size == 3 && charact_gab.include?('высота') && !charact_gab.include?('ø')
-            shirina = charact_gab.split('x')[0]
-            glubina = charact_gab.split('x')[1]
-            visota = charact_gab.split('x')[2].gsub('высота', '')
-          end
-          if charact_gab.split('x').size == 3 && charact_gab.include?('H.') && charact_gab.include?('ø')
-            diametr = charact_gab.split('x')[0]
-            glubina = charact_gab.split('x')[1]
-            visota = charact_gab.split('x')[2].gsub('H.', '')
-          end
-          if charact_gab.split('x').size == 2 && charact_gab.include?('ø')
-            diametr = charact_gab.split('x')[0].gsub('ø ', '')
-            visota = charact_gab.split('x')[1].gsub('H.', '')
-          end
-          if charact_gab.split('x').size == 2 && !charact_gab.include?('ø')
-            shirina = charact_gab.split('x')[0]
-            glubina = charact_gab.split('x')[1]
+          if charact_gab.present?
+            if charact_gab.include?('A.') && charact_gab.include?('Б.')
+              shirina = charact_gab.split('|')[0].gsub('A. ', '') if !charact_gab.split('|')[0].nil? && charact_gab.split('|')[0].include?('A.')
+              glubina = charact_gab.split('|')[1].gsub('Б. ', '') if !charact_gab.split('|')[1].nil? && charact_gab.split('|')[1].include?('Б.')
+              visota = charact_gab.split('|')[2].gsub('С. ', '') if !charact_gab.split('|')[2].nil? && charact_gab.split('|')[2].include?('С.')
+              glubina_sid = charact_gab.split('|')[3].gsub('Д. ', '') if !charact_gab.split('|')[3].nil? && charact_gab.split('|')[3].include?('Д.')
+              visota_sid = charact_gab.split('|')[4].gsub('Е. ', '') if !charact_gab.split('|')[4].nil? && charact_gab.split('|')[4].include?('Е.')
+            end
+            if charact_gab.include?('A.') && charact_gab.include?('B.')
+              shirina = charact_gab.split('|')[0].gsub('A. ', '') if !charact_gab.split('|')[0].nil? && charact_gab.split('|')[0].include?('A.')
+              glubina = charact_gab.split('|')[1].gsub('B. ', '') if !charact_gab.split('|')[1].nil? && charact_gab.split('|')[1].include?('B.')
+              visota = charact_gab.split('|')[2].gsub('C. ', '') if !charact_gab.split('|')[2].nil? && charact_gab.split('|')[2].include?('C.')
+              glubina_sid = charact_gab.split('|')[3].gsub('D. ', '') if !charact_gab.split('|')[3].nil? && charact_gab.split('|')[3].include?('D.')
+              visota_sid = charact_gab.split('|')[4].gsub('E. ', '') if !charact_gab.split('|')[4].nil? && charact_gab.split('|')[4].include?('E.')
+            end
+            if charact_gab.split('x').size == 3 && charact_gab.include?('H.') && !charact_gab.include?('ø')
+              shirina = charact_gab.split('x')[0]
+              glubina = charact_gab.split('x')[1]
+              visota = charact_gab.split('x')[2].gsub('H.', '')
+            end
+            if charact_gab.split('x').size == 3 && charact_gab.include?('высота') && !charact_gab.include?('ø')
+              shirina = charact_gab.split('x')[0]
+              glubina = charact_gab.split('x')[1]
+              visota = charact_gab.split('x')[2].gsub('высота', '')
+            end
+            if charact_gab.split('x').size == 3 && charact_gab.include?('H.') && charact_gab.include?('ø')
+              diametr = charact_gab.split('x')[0]
+              glubina = charact_gab.split('x')[1]
+              visota = charact_gab.split('x')[2].gsub('H.', '')
+            end
+            if charact_gab.split('x').size == 2 && charact_gab.include?('ø')
+              diametr = charact_gab.split('x')[0].gsub('ø ', '')
+              visota = charact_gab.split('x')[1].gsub('H.', '')
+            end
+            if charact_gab.split('x').size == 2 && !charact_gab.include?('ø')
+              shirina = charact_gab.split('x')[0]
+              glubina = charact_gab.split('x')[1]
+            end
           end
           writer << [fid, sku, title, desc, price, oldprice, quantity, image, cat, cat1, cat2, cat3, shirina, glubina, visota, glubina_sid, visota_sid, diametr]
         end

@@ -95,7 +95,7 @@ class KaresController < ApplicationController
   def update
     respond_to do |format|
       if @kare.update(kare_params)
-        format.html { redirect_to @kare, notice: 'Kare was successfully updated.' }
+        format.html { redirect_to kares_url, notice: 'Kare was successfully updated.' }
         format.json { render :show, status: :ok, location: @kare }
       else
         format.html { render :edit }

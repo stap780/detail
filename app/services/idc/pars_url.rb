@@ -98,7 +98,7 @@ class Idc::ParsUrl < ApplicationService
       value = item.text.remove(key.to_s).squish
       charact_gab_array.push(value) if gab_keys.include?(key)
     end
-    charact_gab_array.join().gsub('cm', '').gsub('см', '').gsub('h.','').gsub(' ', '').gsub('W.', '').gsub('maxW.', '').gsub('H.', '').gsub('max','').gsub('|','x')
+    charact_gab_array.join().gsub('cm', '').gsub('см', '').gsub('h.','').gsub(' ', '').gsub('W.', '').gsub('maxW.', '').gsub('H.', '').gsub('max','').gsub('L.','').gsub('|','x')
   end
 
   def clear_charact(pr_doc)
