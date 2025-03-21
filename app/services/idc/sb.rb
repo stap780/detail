@@ -41,7 +41,7 @@ class Idc::Sb < ApplicationService
       skip += limit
     end
 
-    offers
+    offers.uniq
   end
 
   def build_url(limit = 100, skip = 0)

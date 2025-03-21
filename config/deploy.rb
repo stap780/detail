@@ -77,4 +77,3 @@ namespace :deploy do
   # after 'deploy:published', 'sidekiq:restart'
   
 end
-  
