@@ -15,7 +15,7 @@ class Idc::ParsUrl < ApplicationService
   private
 
   def setup_logger
-    @logger = Logger.new(Rails.root.join('log', 'idc_pars.log'))
+    @logger = Logger.new(Rails.root.join('log', 'idc_pars_page.log'))
     @logger.formatter = Logger::Formatter.new
   end
 

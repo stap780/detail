@@ -48,8 +48,7 @@ end
   end
 
   def self.csv_param
-    products = Kare.all.finished
-    Kare.csv_param_selected(products, 'full')
+    Kare.csv_param_selected(Kare.all.finished, 'full')
   end
 
   def self.csv_param_selected(products, otchet_type)
