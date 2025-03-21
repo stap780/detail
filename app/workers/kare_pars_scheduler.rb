@@ -5,6 +5,6 @@ class KareParsScheduler
   include Sidekiq::Worker
 
   def perform
-    Kare.pars
+    KareCollectLinksJob.perform_later
   end
 end

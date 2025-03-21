@@ -5,6 +5,6 @@ class IdcParsScheduler
   include Sidekiq::Worker
 
   def perform
-    Idc::Import.call
+    IdcImportJob.perform_later
   end
 end
