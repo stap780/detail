@@ -7,7 +7,7 @@ class KareParsPage < ApplicationService
     @doc = nil
     @data = {}
     @kare = Kare.find_by_url(@link)
-    @kare.update(status: 'process') if @kare.present?
+    @kare.update!(status: 'process', charact: '') if @kare.present?
     setup_logger
   end
 

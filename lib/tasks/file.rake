@@ -5,7 +5,7 @@ namespace :file do
   task create_log_zip_every_day: :environment do
     puts 'start create_log_zip_every_day'
     folder = '/var/www/detail/shared/log/'
-    file_names = ['production.log','puma.access.log','puma.error.log','cron.log','idc_pars.log','kare_pars.log'] #,'nginx.access.log','nginx.error.log'
+    file_names = ['production.log','puma.access.log','puma.error.log','cron.log','idc_pars_page.log','kare_pars_page.log'] #,'nginx.access.log','nginx.error.log'
     zip_folder = '/var/www/detail/shared/log/zip/'
     time = Time.zone.now.strftime('%d_%m_%Y_%I_%M')
 

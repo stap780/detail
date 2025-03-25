@@ -231,6 +231,6 @@ class IdcsController < ApplicationController
   end
 
   def idc_params
-    params.require(:idc).permit(:status, :sku, :title, :desc, :cat, :charact, :charact_gab, :oldprice, :price, :quantity, :image, :url)
+    params.require(:idc).permit(:status, :sku, :title, :desc, :cat, :charact, :charact_gab, :oldprice, :price, :quantity, :image, :url, :archived)
   end
 end

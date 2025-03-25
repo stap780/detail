@@ -62,6 +62,7 @@ class Idc::ParsUrl < ApplicationService
     price = clear_price(pr_doc)
     quantity = clear_quantity(pr_doc)
     image = clear_image(pr_doc)
+    archived = clear_archived(pr_doc)
 
     {
       sku: sku,
@@ -75,7 +76,8 @@ class Idc::ParsUrl < ApplicationService
       quantity: quantity,
       image: image,
       url: @url,
-      status: 'finish'
+      status: 'finish',
+      archived: archived
     }
   end
 
@@ -104,7 +106,8 @@ class Idc::ParsUrl < ApplicationService
       value = item.text.remove(key.to_s).squish
       charact_gab_array.push(value) if gab_keys.include?(key)
     end
-    charact_gab_array.join().gsub('cm', '').gsub('см', '').gsub('h.','').gsub(' ', '').gsub('W.', '').gsub('maxW.', '').gsub('H.', '').gsub('max','').gsub('L.','').gsub('|','x')
+    charact_gab_array.join().gsub('cm', '').gsub('см', '').gsub(' ', '').gsub('|','x')
+    # .gsub('h.','').gsub('W.', '').gsub('maxW.', '').gsub('H.', '').gsub('max','').gsub('L.','').gsub('|','x').gsub('D.','')
   end
 
   def clear_charact(pr_doc)
@@ -112,7 +115,8 @@ class Idc::ParsUrl < ApplicationService
     exclude_keys = %w[Артикул Габариты Артикул: Габариты:]
     pr_doc.css('.element-popups__content .first .content-item__element').each do |item|
       key = item.inner_html.squish.split('<span>').first.strip
-      value = item.text.remove(key.to_s).squish
+      # value = item.text.remove(key.to_s).squish
+      value = item.elements.map(&:text).map(&:capitalize).join('##')
       clear_key = key.include?(':') ? key : "#{key}:"
       characts_array.push("#{clear_key} #{value}") unless exclude_keys.include?(key)
     end
@@ -158,6 +162,13 @@ class Idc::ParsUrl < ApplicationService
       end
     end
     picts.reject(&:blank?).map { |a| "https://idcollection.ru#{a}" }.uniq.join(' ')
+  end
+
+  def clear_archived(pr_doc)
+    node = pr_doc.css('.product-badge__archive')
+    return false unless node.present?
+
+    true
   end
 
   def get_proxy

@@ -71,6 +71,7 @@ class Webshare < ApplicationService
     File.open(Rails.root.join('public', file_name), 'wb') do |file|
       file.write(response.body)
     end
+    puts 'Proxy list downloaded'
   end
 
   def proxy_list_download_token

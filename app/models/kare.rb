@@ -85,21 +85,21 @@ end
           cat2 = pr.cat.split('/')[2] || '' if pr.cat != nil
           cat3 = pr.cat.split('/')[3] || '' if pr.cat != nil
 
-          writer << [fid, sku, title, full_title, specialty, desc, price, quantity, image, cat, cat1, cat2, cat3, 'KARE' ]
+          writer << [fid, sku, title, full_title, specialty, desc, price, quantity, image, cat, cat1, cat2, cat3, 'KARE']
         end
       end
     end #CSV.open
 
-    #параметры в таблице записаны в виде - "Состояние: новый --- Вид: квадратный --- Объём: 3л --- Радиус: 10м"
+    # параметры в таблице записаны в виде - "Состояние: новый --- Вид: квадратный --- Объём: 3л --- Радиус: 10м"
     # дополняем header файла названиями параметров
 
     vparamHeader = []
     p = @tovs.select(:charact)
     p.each do |p|
-      if p.charact.present?
-        p.charact.split('---').each do |pa|
-          vparamHeader << pa.split(':')[0].strip if pa != nil
-        end
+      next unless p.charact.present?
+
+      p.charact.split('---').each do |pa|
+        vparamHeader << pa.split(':')[0].strip if pa != nil
       end
     end
     addHeaders = vparamHeader.uniq
@@ -130,39 +130,42 @@ end
     # Overwrite csv file
 
     # заполняем параметры по каждому товару в файле
-    CSV.open(file_ins, "w") do |csv_out|
+    CSV.open(file_ins, 'w') do |csv_out|
       rows = CSV.read(file, headers: true).collect do |row|
         row.to_hash
       end
       column_names = rows.first.keys
       csv_out << column_names
-      CSV.foreach(file, headers: true ) do |row|
+      CSV.foreach(file, headers: true) do |row|
         fid = row[0]
-        puts "fid => #{fid}.to_s"
         vel = Kare.find_by_id(fid)
-        if vel != nil
-# 				puts vel.id
-          if vel.charact.present? # Вид записи должен быть типа - "Длина рамы: 20 --- Ширина рамы: 30"
-            vel.charact.split('---').each do |vp|
-              puts "vp => #{vp.to_s}"
-              key_value = vp.split(':')
-              key = key_value[0].respond_to?("strip") ? "Параметр: #{key_value[0].strip}" : ''
-              value = key_value[1].respond_to?("strip") ? key_value[1].strip.gsub('см<sup>3</sup>','').gsub('см','').gsub('кг','') : ''
-              row[key] = value
+        next if vel.nil?
+
+        if vel.charact.present?
+          # NOTICE Вид записи должен быть типа - 'Длина рамы: 20 --- Ширина рамы: 30'
+          vel.charact.split('---').each do |vp|
+            key_value = vp.split(':')
+            key = key_value[0].respond_to?('strip') ? "Параметр: #{key_value[0].strip}" : ''
+            value = key_value[1].respond_to?('strip') ? key_value[1].strip.gsub('см<sup>3</sup>', '').gsub('см', '').gsub('кг', '') : ''
+            value_size = value.split(' ').size
+            if key == 'Параметр: Материал'
+              value = value_size == 1 ? value.split(' ').map(&:capitalize).join(' ') : ''
             end
+            row[key] = value
           end
         end
+
         csv_out << row
       end
     end
-    
+
     Turbo::StreamsChannel.broadcast_replace_to(
       # User.find(current_user.id),
-      "bulk_actions",
-      target: "modal",
-      template: "shared/success_bulk",
+      'bulk_actions',
+      target: 'modal',
+      template: 'shared/success_bulk',
       layout: false,
-      locals: {bulk_print: file_ins}
+      locals: { bulk_print: file_ins }
     )
 
   end

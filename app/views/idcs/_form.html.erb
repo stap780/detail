@@ -9,7 +9,8 @@
     <%= f.input :oldprice,  wrapper_html: { class: "col-md-2" } %>
     <%= f.input :price,  wrapper_html: { class: "col-md-2" } %>
     <%= f.input :quantity,  wrapper_html: { class: "col-md-1" } %>
-    <%= f.input :desc, wrapper_html: { class: "col-md-12" } %>
+    <%= f.input :archived, as: :boolean, input_html: { class: "form-check-input" }, label_html: { class: "form-check-label" }, wrapper_html: { class: "form-check form-switch col-md-2 d-flex align-items-center" } %>
+    <%= f.input :desc, wrapper_html: { class: "col-md-10" } %>
     <%= f.input :cat, wrapper_html: { class: "col-md-6" } %>
     <%= f.input :charact_gab, wrapper_html: { class: "col-md-6" } %>
     <%= f.input :charact, wrapper_html: { class: "col-md-12" } %>
